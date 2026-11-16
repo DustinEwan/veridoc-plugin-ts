@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RawClaim",
+  "description": "One declared claim, exactly as the sidecar registered it.",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "$ref": "#/$defs/Channel"
+    },
+    "concept": {
+      "type": "string"
+    },
+    "file": {
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/Kind"
+    },
+    "line": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "predicate": {
+      "type": "string"
+    },
+    "subject": {
+      "$ref": "#/$defs/RefToken"
+    },
+    "supports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "text": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "subject",
+    "concept",
+    "predicate",
+    "text",
+    "channel",
+    "supports",
+    "file",
+    "line"
+  ],
+  "$defs": {
+    "Artefact": {
+      "description": "A declared artefact: the file and the hash the claim records for it.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ]
+    },
+    "AssertLeaf": {
+      "description": "One leaf: an observable and the check over its value.",
+      "type": "object",
+      "properties": {
+        "is": {
+          "$ref": "#/$defs/Check"
+        },
+        "obs": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "obs",
+        "is"
+      ]
+    },
+    "Asserts": {
+      "description": "An assertion node: a conjunction, disjunction, negation, or leaf, with leaves written\ninline. A malformed node yields an unusable `untagged` message, so the engine's bind pass\nreports the shape error itself, naming the claim id and the tree path.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Asserts"
+              }
+            }
+          },
+          "required": [
+            "all"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Asserts"
+              }
+            }
+          },
+          "required": [
+            "any"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "not": {
+              "$ref": "#/$defs/Asserts"
+            }
+          },
+          "required": [
+            "not"
+          ]
+        },
+        {
+          "$ref": "#/$defs/AssertLeaf"
+        }
+      ]
+    },
+    "Channel": {
+      "description": "The single channel field of a claim. Flat, not externally tagged, so the wire shape\nmatches the builder call and the \"two channels or none\" error is a direct count of the\npopulated fields.",
+      "type": "object",
+      "properties": {
+        "artefact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Artefact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "asserts": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Asserts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "citation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Citation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scenario": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Check": {
+      "description": "A check over one observed value. Externally tagged, so `Equals(2)` renders as\n`{\"equals\":2}` and `Satisfies(..)` as `{\"satisfies\":{\"source\":\"..\"}}`.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "equals": true
+          },
+          "additionalProperties": false,
+          "required": [
+            "equals"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "contains": true
+          },
+          "additionalProperties": false,
+          "required": [
+            "contains"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "satisfies": {
+              "$ref": "#/$defs/SatisfiesSpec"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "satisfies"
+          ]
+        }
+      ]
+    },
+    "Citation": {
+      "description": "A typed citation against a declared store.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "store": {
+          "type": "string"
+        },
+        "turn": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "store",
+        "id"
+      ]
+    },
+    "Kind": {
+      "description": "The five claim kinds. The distinction the kinds carry is normative against observational.",
+      "type": "string",
+      "enum": [
+        "requires",
+        "ensures",
+        "invariant",
+        "witness",
+        "because"
+      ]
+    },
+    "RefToken": {
+      "description": "What a claim is about: a resolved symbol or a declared concept. Internally tagged on\n`kind` so the wire shape matches the builder call.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "const": "symbol"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "name",
+            "from"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "concept"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "name"
+          ]
+        }
+      ]
+    },
+    "SatisfiesSpec": {
+      "description": "A predicate the plugin evaluates. `source` is the predicate text; `accepts` and `rejects`\nare the witness pair the author supplies when static analysis cannot settle bivalence.",
+      "type": "object",
+      "properties": {
+        "accepts": true,
+        "rejects": true,
+        "source": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ]
+    }
+  }
+}

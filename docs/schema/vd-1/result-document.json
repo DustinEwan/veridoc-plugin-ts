@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResultDocument",
+  "description": "The result document at `.veridoc/result.json`.",
+  "type": "object",
+  "properties": {
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ClaimResult"
+      }
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generatedAt": {
+      "description": "ISO 8601. Excluded from `resultHash` by hashing the document before this field is set.",
+      "type": "string"
+    },
+    "metrics": {
+      "$ref": "#/$defs/Metrics"
+    },
+    "protocolVersion": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SectionResult"
+      }
+    },
+    "tree": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TreeNode"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Warning"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "protocolVersion",
+    "generatedAt",
+    "tree",
+    "sections",
+    "claims",
+    "concepts",
+    "warnings",
+    "metrics"
+  ],
+  "$defs": {
+    "ClaimResult": {
+      "description": "One claim with its outcome and the evidence that produced it.",
+      "type": "object",
+      "properties": {
+        "channel": {
+          "description": "The channel that produced the outcome: `scenario`, `artefact`, `citation`, or `judge`.",
+          "type": "string"
+        },
+        "concept": {
+          "type": "string"
+        },
+        "evidence": {
+          "description": "Scenario id, artefact path, or verdict key.",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/Kind"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "predicate": {
+          "type": "string"
+        },
+        "referentId": {
+          "type": "string"
+        },
+        "residue": {
+          "description": "Set on a `because` claim whose citation resolved but whose cited text could not be\nread. The single occupant of the residue metric.",
+          "type": "boolean"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "text",
+        "predicate",
+        "concept",
+        "referentId",
+        "signature",
+        "channel",
+        "outcome",
+        "residue",
+        "evidence"
+      ]
+    },
+    "Kind": {
+      "description": "The five claim kinds. The distinction the kinds carry is normative against observational.",
+      "type": "string",
+      "enum": [
+        "requires",
+        "ensures",
+        "invariant",
+        "witness",
+        "because"
+      ]
+    },
+    "Metrics": {
+      "description": "The six figures of a green run. Names a formatter may render, not prose the engine writes.",
+      "type": "object",
+      "properties": {
+        "coverage": {
+          "type": "number",
+          "format": "double"
+        },
+        "coverageDetail": {
+          "type": "string"
+        },
+        "customLogic": {
+          "type": "number",
+          "format": "double"
+        },
+        "obligation": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "redundancy": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "residue": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "residueShare": {
+          "type": "number",
+          "format": "double"
+        },
+        "unmatchedProse": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "coverage",
+        "coverageDetail",
+        "customLogic",
+        "unmatchedProse",
+        "residue",
+        "residueShare",
+        "redundancy",
+        "obligation"
+      ]
+    },
+    "Outcome": {
+      "description": "Exactly two members. `Contradicted` is kept even though a contradicted claim ends the run\nbefore the document exists, so a formatter's `match` on the outcome is exhaustive and\ncannot default a non-`supported` claim to plain prose.",
+      "type": "string",
+      "enum": [
+        "supported",
+        "contradicted"
+      ]
+    },
+    "SectionResult": {
+      "description": "One parsed `.spec.md` section with the spans the engine issued and the claims it selected.",
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "heading": {
+          "type": "string"
+        },
+        "selects": {
+          "description": "The resolved claim ids the section selects.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "spans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Span"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "anchor",
+        "heading",
+        "spans",
+        "selects"
+      ]
+    },
+    "Span": {
+      "description": "One authored span. Span ids are assigned by the engine at assembly time; a verdict citing\nan id the engine never issued is a run failure.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text"
+      ]
+    },
+    "TreeNode": {
+      "description": "One declared node of the document tree.",
+      "type": "object",
+      "properties": {
+        "anchor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "audience": {
+          "type": "string"
+        },
+        "notApplicable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "path": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "audience",
+        "question",
+        "order"
+      ]
+    },
+    "Warning": {
+      "description": "A warning carried for formatters that want them, beside the same line on stderr.",
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "line": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "message"
+      ]
+    }
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunResponse",
+  "type": "object",
+  "properties": {
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RunFailure"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "observed": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Observed"
+      }
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "satisfied": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LeafAnswer"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "ok",
+    "observed",
+    "satisfied"
+  ],
+  "$defs": {
+    "LeafAnswer": {
+      "type": "object",
+      "properties": {
+        "leafId": {
+          "type": "string"
+        },
+        "ok": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "leafId",
+        "ok"
+      ]
+    },
+    "Observed": {
+      "type": "object",
+      "properties": {
+        "observable": {
+          "type": "string"
+        },
+        "value": {
+          "description": "The value JSON-encoded by the plugin, so `{\"equals\":2}` matches the string `\"2\"`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "observable",
+        "value"
+      ]
+    },
+    "RunFailure": {
+      "type": "object",
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/RunFailureKind"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "detail"
+      ]
+    },
+    "RunFailureKind": {
+      "description": "Why a scenario could not run. Never a claim state.",
+      "type": "string",
+      "enum": [
+        "build",
+        "fixture",
+        "deadline",
+        "plugin"
+      ]
+    }
+  }
+}

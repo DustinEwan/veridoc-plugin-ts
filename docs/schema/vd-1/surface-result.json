@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SurfaceResult",
+  "type": "object",
+  "properties": {
+    "referents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SurfaceReferent"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "referents"
+  ],
+  "$defs": {
+    "SurfaceReferent": {
+      "description": "One entry of the declared surface, so the run can report symbols that no claim covers.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "public": {
+          "type": "boolean"
+        },
+        "referentId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "referentId",
+        "name",
+        "public"
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Artefact",
+  "description": "A declared artefact: the file and the hash the claim records for it.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string"
+    },
+    "sha256": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "path",
+    "sha256"
+  ]
+}

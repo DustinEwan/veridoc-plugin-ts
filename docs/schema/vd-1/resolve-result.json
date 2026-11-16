@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResolveResult",
+  "type": "object",
+  "properties": {
+    "resolved": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ResolvedRef"
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/UnresolvedRef"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "resolved",
+    "unresolved"
+  ],
+  "$defs": {
+    "ResolvedRef": {
+      "description": "The answer for one requested reference.",
+      "type": "object",
+      "properties": {
+        "ref": {
+          "type": "string"
+        },
+        "referentId": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "referentId",
+        "signature"
+      ]
+    },
+    "UnresolvedRef": {
+      "description": "An unresolved reference is a normal answer with a reason, not a protocol error.",
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "reason"
+      ]
+    }
+  }
+}

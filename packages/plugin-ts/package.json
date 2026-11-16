@@ -1,0 +1,14 @@
+{
+  "name": "@veridoc/plugin-ts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/server.js",
+  "exports": {
+    ".": "./dist/server.js"
+  },
+  "dependencies": {
+    "@veridoc/claims": "*",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

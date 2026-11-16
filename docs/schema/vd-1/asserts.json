@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Asserts",
+  "description": "An assertion node: a conjunction, disjunction, negation, or leaf, with leaves written\ninline. A malformed node yields an unusable `untagged` message, so the engine's bind pass\nreports the shape error itself, naming the claim id and the tree path.",
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "all": {
+          "type": "array",
+          "items": {
+            "$ref": "#"
+          }
+        }
+      },
+      "required": [
+        "all"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "any": {
+          "type": "array",
+          "items": {
+            "$ref": "#"
+          }
+        }
+      },
+      "required": [
+        "any"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "not": {
+          "$ref": "#"
+        }
+      },
+      "required": [
+        "not"
+      ]
+    },
+    {
+      "$ref": "#/$defs/AssertLeaf"
+    }
+  ],
+  "$defs": {
+    "AssertLeaf": {
+      "description": "One leaf: an observable and the check over its value.",
+      "type": "object",
+      "properties": {
+        "is": {
+          "$ref": "#/$defs/Check"
+        },
+        "obs": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "obs",
+        "is"
+      ]
+    },
+    "Check": {
+      "description": "A check over one observed value. Externally tagged, so `Equals(2)` renders as\n`{\"equals\":2}` and `Satisfies(..)` as `{\"satisfies\":{\"source\":\"..\"}}`.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "equals": true
+          },
+          "additionalProperties": false,
+          "required": [
+            "equals"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "contains": true
+          },
+          "additionalProperties": false,
+          "required": [
+            "contains"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "satisfies": {
+              "$ref": "#/$defs/SatisfiesSpec"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "satisfies"
+          ]
+        }
+      ]
+    },
+    "SatisfiesSpec": {
+      "description": "A predicate the plugin evaluates. `source` is the predicate text; `accepts` and `rejects`\nare the witness pair the author supplies when static analysis cannot settle bivalence.",
+      "type": "object",
+      "properties": {
+        "accepts": true,
+        "rejects": true,
+        "source": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ]
+    }
+  }
+}

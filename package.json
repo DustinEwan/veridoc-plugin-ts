@@ -1,0 +1,20 @@
+{
+  "name": "veridoc-plugin-ts",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/claims",
+    "packages/tree",
+    "packages/plugin-ts"
+  ],
+  "scripts": {
+    "build": "tsc -b packages/claims packages/tree packages/plugin-ts",
+    "test": "npm run build && node --test packages/plugin-ts/test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2"
+  }
+}

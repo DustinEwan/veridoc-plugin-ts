@@ -1,0 +1,10 @@
+{
+  "name": "veridoc-plugin-ts",
+  "install": ["npm", "ci"],
+  "build": ["npm", "run", "build"],
+  "command": ["node", "packages/plugin-ts/dist/server.js"],
+  "conformance": {
+    "emitter": ["node", "packages/plugin-ts/dist/conformance-emitter.js"],
+    "deadlineMs": 60000
+  }
+}

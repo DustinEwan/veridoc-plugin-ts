@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SatisfiesSpec",
+  "description": "A predicate the plugin evaluates. `source` is the predicate text; `accepts` and `rejects`\nare the witness pair the author supplies when static analysis cannot settle bivalence.",
+  "type": "object",
+  "properties": {
+    "accepts": true,
+    "rejects": true,
+    "source": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "source"
+  ]
+}

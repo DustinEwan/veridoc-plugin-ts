@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BivalenceResult",
+  "type": "object",
+  "properties": {
+    "bivalent": {
+      "type": "boolean"
+    },
+    "method": {
+      "$ref": "#/$defs/BivalenceMethod"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "witnessAccepts": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "witnessRejects": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "bivalent",
+    "method"
+  ],
+  "$defs": {
+    "BivalenceMethod": {
+      "description": "How the plugin settled (or failed to settle) bivalence. `static-analysis` is spelled with\nthe kebab case of the spec's union, not serde's camelCase default.",
+      "type": "string",
+      "enum": [
+        "structural",
+        "static-analysis",
+        "witnesses"
+      ]
+    }
+  }
+}

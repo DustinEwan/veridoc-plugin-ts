@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "S1Verdict",
+  "description": "S1: which selected claims the section does not mention, and which assertions in the\nsection no claim states.",
+  "type": "object",
+  "properties": {
+    "unmentionedClaims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unstatedAssertions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Unstated"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "unmentionedClaims",
+    "unstatedAssertions"
+  ],
+  "$defs": {
+    "Unstated": {
+      "type": "object",
+      "properties": {
+        "span": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "span",
+        "text"
+      ]
+    }
+  }
+}

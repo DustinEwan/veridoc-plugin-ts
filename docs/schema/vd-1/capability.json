@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capability",
+  "description": "A method family the plugin answers. A missing capability is reported, never silently\ntreated as a pass; the engine's behaviour per absence is fixed by the capability table in\n`docs/spec.md`.",
+  "type": "string",
+  "enum": [
+    "collect",
+    "resolution",
+    "derivability",
+    "bivalence",
+    "execution",
+    "citation",
+    "surface"
+  ]
+}

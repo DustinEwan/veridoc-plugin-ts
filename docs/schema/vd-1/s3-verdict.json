@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "S3Verdict",
+  "description": "S3: pairs of document nodes whose audience and question ask the same thing.",
+  "type": "object",
+  "properties": {
+    "pairs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/S3Pair"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "pairs"
+  ],
+  "$defs": {
+    "S3Pair": {
+      "type": "object",
+      "properties": {
+        "nodeA": {
+          "type": "string"
+        },
+        "nodeB": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "nodeA",
+        "nodeB"
+      ]
+    }
+  }
+}

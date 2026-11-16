@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunRequest",
+  "description": "One scenario run. The engine parses the scenario and passes the leaves; the plugin answers\nvalues and never a verdict.",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deadlineMs": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "fixture": {
+      "type": "string"
+    },
+    "leaves": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RunLeaf"
+      }
+    },
+    "scenarioId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "scenarioId",
+    "fixture",
+    "action",
+    "args",
+    "deadlineMs",
+    "leaves"
+  ],
+  "$defs": {
+    "RunLeaf": {
+      "description": "One leaf the engine asks the plugin to evaluate, addressed by the id the engine issued.",
+      "type": "object",
+      "properties": {
+        "leafId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "leafId"
+      ]
+    }
+  }
+}

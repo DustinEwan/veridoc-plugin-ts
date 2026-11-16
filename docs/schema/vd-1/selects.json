@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Selects",
+  "description": "A document node's selection. Every present field must match; an all-`None` `Selects`\nselects nothing and is reported rather than treated as \"select everything\".",
+  "type": "object",
+  "properties": {
+    "claims": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "concept": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "kind": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/$defs/Kind"
+      }
+    },
+    "referent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Kind": {
+      "description": "The five claim kinds. The distinction the kinds carry is normative against observational.",
+      "type": "string",
+      "enum": [
+        "requires",
+        "ensures",
+        "invariant",
+        "witness",
+        "because"
+      ]
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CiteResult",
+  "type": "object",
+  "properties": {
+    "resolved": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ResolvedCitation"
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/UnresolvedCitation"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "resolved",
+    "unresolved"
+  ],
+  "$defs": {
+    "ResolvedCitation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text"
+      ]
+    },
+    "UnresolvedCitation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "reason"
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skipped",
+  "description": "A sidecar that would not import. The engine reports it as a run failure, because a\nsidecar that vanished silently would take its claims with it.",
+  "type": "object",
+  "properties": {
+    "file": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "file",
+    "reason"
+  ]
+}

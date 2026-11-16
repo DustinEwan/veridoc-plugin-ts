@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Kind",
+  "description": "The five claim kinds. The distinction the kinds carry is normative against observational.",
+  "type": "string",
+  "enum": [
+    "requires",
+    "ensures",
+    "invariant",
+    "witness",
+    "because"
+  ]
+}

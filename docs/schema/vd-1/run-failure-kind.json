@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunFailureKind",
+  "description": "Why a scenario could not run. Never a claim state.",
+  "type": "string",
+  "enum": [
+    "build",
+    "fixture",
+    "deadline",
+    "plugin"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BivalenceMethod",
+  "description": "How the plugin settled (or failed to settle) bivalence. `static-analysis` is spelled with\nthe kebab case of the spec's union, not serde's camelCase default.",
+  "type": "string",
+  "enum": [
+    "structural",
+    "static-analysis",
+    "witnesses"
+  ]
+}

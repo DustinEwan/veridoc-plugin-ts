@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "S2Verdict",
+  "description": "S2: pairs of spans that disagree, with the claim id between them.",
+  "type": "object",
+  "properties": {
+    "pairs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/S2Pair"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "pairs"
+  ],
+  "$defs": {
+    "S2Pair": {
+      "type": "object",
+      "properties": {
+        "claimId": {
+          "type": "string"
+        },
+        "spanA": {
+          "type": "string"
+        },
+        "spanB": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "spanA",
+        "spanB",
+        "claimId"
+      ]
+    }
+  }
+}
