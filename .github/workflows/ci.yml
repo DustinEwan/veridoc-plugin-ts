@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  # The dependency points one way: this job installs the engine, never the reverse.
+  # Conformance is a property of this plugin, so the suite is driven here against a
+  # current engine, and the engine repository's own CI only carries its fake plugin.
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Tests
+        run: |
+          npm ci
+          npm test
+
+      - name: Build the engine
+        run: |
+          set -eu
+          git clone --depth 1 "https://github.com/${{ github.repository_owner }}/veridoc" .ci/veridoc
+          cargo build --release --manifest-path .ci/veridoc/Cargo.toml -p veridoc-cli
+
+      - name: Install and validate this plugin through the engine's machinery
+        run: |
+          set -eu
+          export VERIDOC_HOME="$PWD/.ci/registry"
+          .ci/veridoc/target/release/veridoc install-plugin "$PWD"
+          .ci/veridoc/target/release/veridoc validate-plugin --name veridoc-plugin-ts
+
+      # The engine repository ships examples/scanner, which names the installed plugin
+      # and links its authoring packages from the installed checkout; a green check of
+      # it is the end-to-end gate for this plugin.
+      - name: The engine's example runs green against this plugin
+        run: |
+          set -eu
+          export VERIDOC_HOME="$PWD/.ci/registry"
+          (cd .ci/veridoc/examples/scanner && tools/link-authoring.sh)
+          .ci/veridoc/target/release/veridoc check --project .ci/veridoc/examples/scanner
