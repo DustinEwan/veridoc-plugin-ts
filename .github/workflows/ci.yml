@@ -6,9 +6,9 @@ on:
   pull_request:
 
 jobs:
-  # The dependency points one way: this job installs the engine, never the reverse.
-  # Conformance is a property of this plugin, so the suite is driven here against a
-  # current engine, and the engine repository's own CI only carries its fake plugin.
+  # The dependency points one way: this job obtains the engine's executable and nothing
+  # else. Conformance is a property of this plugin, so the suite is driven here; the
+  # engine repository's CI carries only its own fake plugin.
   conformance:
     runs-on: ubuntu-latest
     steps:
@@ -18,32 +18,23 @@ jobs:
         with:
           node-version: "24"
 
-      - uses: dtolnay/rust-toolchain@stable
-
       - name: Tests
         run: |
           npm ci
           npm test
 
-      - name: Build the engine
+      - name: Install the veridoc executable
         run: |
           set -eu
-          git clone --depth 1 "https://github.com/${{ github.repository_owner }}/veridoc" .ci/veridoc
-          cargo build --release --manifest-path .ci/veridoc/Cargo.toml -p veridoc-cli
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/veridoc/main/install.sh" | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Install and validate this plugin through the engine's machinery
-        run: |
-          set -eu
-          export VERIDOC_HOME="$PWD/.ci/registry"
-          .ci/veridoc/target/release/veridoc install-plugin "$PWD"
-          .ci/veridoc/target/release/veridoc validate-plugin --name veridoc-plugin-ts
+      # The checkout is everything the command receives: it reads veridoc-plugin.json,
+      # runs the build steps, and drives the suite against the built server.
+      - name: Validate this plugin's checkout
+        run: veridoc validate-plugin
 
-      # The engine repository ships examples/scanner, which names the installed plugin
-      # and links its authoring packages from the installed checkout; a green check of
-      # it is the end-to-end gate for this plugin.
-      - name: The engine's example runs green against this plugin
-        run: |
-          set -eu
-          export VERIDOC_HOME="$PWD/.ci/registry"
-          (cd .ci/veridoc/examples/scanner && tools/link-authoring.sh)
-          .ci/veridoc/target/release/veridoc check --project .ci/veridoc/examples/scanner
+      # The example names this repository's built server directly and reads its
+      # authoring packages from the workspace; a green check is the end-to-end gate.
+      - name: The example runs green
+        run: veridoc check --project examples/scanner

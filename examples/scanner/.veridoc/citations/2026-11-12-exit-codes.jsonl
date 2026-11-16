@@ -1,0 +1,1 @@
+{"turn": 1, "text": "We reserve exit code 2 for refusal of missing or unreadable input, so a reader can tell a refused run apart from a crashed one.", "state": "done"}

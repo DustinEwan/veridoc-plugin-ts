@@ -1,0 +1,13 @@
+{
+  "protocol": "vd/1",
+  "plugin": { "command": ["node", "../../packages/plugin-ts/dist/server.js"] },
+  "coverage": { "required": 0.6 },
+  "run": { "scenarioDeadlineMs": 30000 },
+  "judge": {
+    "transport": "command",
+    "command": ["node", "tools/scripted-judge.mjs"],
+    "model": "scripted-1"
+  },
+  "output": { "dir": ".veridoc/out", "formatters": ["markdown"] },
+  "citationStores": [{ "name": "session", "kind": "file", "path": ".veridoc/citations" }]
+}
