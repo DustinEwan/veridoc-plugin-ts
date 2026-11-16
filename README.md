@@ -35,5 +35,5 @@ npm test   # builds, then the protocol contract test, the bivalence test, and th
 ```
 
 `docs/schema/vd-1/` is a copy of the committed protocol schemas; the contract test compares
-every TypeScript literal against it. The veridoc repository's CI diffs that copy against
-the committed schemas on every change to either repository.
+every TypeScript literal against it. Refresh the copy when the veridoc repository regenerates
+the schemas.
