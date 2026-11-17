@@ -25,7 +25,7 @@ jobs:
 
       - name: Install the veridoc executable
         run: |
-          set -eu
+          set -euo pipefail
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository_owner }}/veridoc/main/install.sh" | sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
