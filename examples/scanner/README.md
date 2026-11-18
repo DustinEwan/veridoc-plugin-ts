@@ -27,9 +27,13 @@ Exit 0 means every claim passed its gate or its judge, the scenario ran, and the
 coverage figure met `coverage.required`. The rendered documentation lands in
 `.veridoc/out/`.
 
-The judge here is `tools/scripted-judge.mjs`, a fixture that answers the pinned brief
-hashes deterministically; a real project sets `judge.transport` to `"anthropic"` or
-points `"command"` at its own model runner.
+The committed config names no `judge`, and this example cannot be checked without one:
+`parseConfig#exit-code-2-decision` carries a citation, the plugin resolves that citation, and
+whether the cited text supports the claim is a model's judgement. `veridoc check` with no judge
+therefore exits 2 and names that claim, rather than reporting a residue of zero for a stage that
+never ran. To run it, add a `judge` block naming `provider` and `model`, plus `baseUrl` for a
+server that serves the OpenAI wire elsewhere; the credential comes from the variable `apiKeyEnv`
+names. The engine calls the model itself, so there is no judge program to write.
 
 ## The document grammar
 

@@ -113,6 +113,25 @@
         "evidence"
       ]
     },
+    "Injected": {
+      "description": "One `<doc-each>` element with the number of values it resolved to. The injected text is already\nin the spans above; this names the element that put it there, which is what a reader of a re-run\nwith no prose diff needs.",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "items"
+      ]
+    },
     "Kind": {
       "description": "The five claim kinds. The distinction the kinds carry is normative against observational.",
       "type": "string",
@@ -198,6 +217,13 @@
         "file": {
           "type": "string"
         },
+        "injections": {
+          "description": "What each `<doc-each>` in the section pulled in, in document order: the element's source\nand the number of values it resolved to at assembly.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Injected"
+          }
+        },
         "spans": {
           "type": "array",
           "items": {
@@ -214,7 +240,8 @@
         "file",
         "subject",
         "spans",
-        "claims"
+        "claims",
+        "injections"
       ]
     },
     "Span": {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "DocumentDecl",
-  "description": "One declared document node, as `index.doc.ts` reports it.",
+  "description": "One declared document node, as the project's document tree reports it through `collect`.",
   "type": "object",
   "properties": {
     "audience": {

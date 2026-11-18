@@ -1,8 +1,10 @@
 # veridoc-plugin-ts
 
 The TypeScript plugin for [veridoc](../veridoc): the stdio JSON-RPC server that reads a
-project's claim sidecars and answers `collect`, `resolve`, `derivable`, `bivalence`, `run`,
-`cite`, and `surface`. It is installed, not vendored:
+project's claim sidecars and answers `init`, `collect`, `resolve`, `derivable`, `bivalence`,
+`run`, `cite`, and `surface`. `init` is the one method that writes: it creates `index.doc.ts`
+and the project's first `.spec.md`, because the host cannot author a file it cannot parse
+(`docs/decisions/0015` in the veridoc repository). It is installed, not vendored:
 
 ```sh
 veridoc install-plugin https://example.invalid/veridoc/veridoc-plugin-ts

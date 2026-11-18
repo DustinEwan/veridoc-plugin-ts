@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InitReq",
+  "description": "`init` parameters: what the host collected from the author, so the plugin can create the files\nonly it can write. The host writes none of them: `0013` puts the root document with the plugin,\nand `docs/decisions/0006` fixes what a project adds.",
+  "type": "object",
+  "properties": {
+    "document": {
+      "description": "The first document of the tree: its audience, its one question, and the `.spec.md` path it\nreads. A second document is an edit to the index, not an answer to a prompt.",
+      "$ref": "#/$defs/DocumentDecl"
+    },
+    "force": {
+      "description": "Replace a file the plugin would create. Without it, a file that already exists is an error\nnaming it, because a scaffold that overwrites an author's prose is worse than none.",
+      "type": "boolean",
+      "default": false
+    },
+    "root": {
+      "description": "The project root, absolute, as the host resolved it.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "root",
+    "document"
+  ],
+  "$defs": {
+    "DocumentDecl": {
+      "description": "One declared document node, as the project's document tree reports it through `collect`.",
+      "type": "object",
+      "properties": {
+        "audience": {
+          "type": "string"
+        },
+        "notApplicable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "audience",
+        "question"
+      ]
+    }
+  }
+}

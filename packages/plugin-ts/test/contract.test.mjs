@@ -56,9 +56,10 @@ test("the JSON-RPC error codes are the protocol's", () => {
   assert.equal(protocol.ERROR_CODES.pluginError, -32000);
 });
 
-test("the method names are the contract's eight", () => {
+test("the method names are the contract's nine", () => {
   assert.deepEqual([...protocol.METHODS], [
     "handshake",
+    "init",
     "collect",
     "resolve",
     "derivable",

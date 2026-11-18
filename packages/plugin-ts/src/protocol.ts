@@ -12,6 +12,7 @@ export const PLUGIN_VERSION = "0.1.0";
 export const LANGUAGES = ["typescript"] as const;
 
 export const CAPABILITIES = [
+  "initialization",
   "collect",
   "resolution",
   "derivability",
@@ -29,6 +30,7 @@ export const RUN_FAILURE_KINDS = ["build", "fixture", "deadline", "plugin"] as c
 
 export const METHODS = [
   "handshake",
+  "init",
   "collect",
   "resolve",
   "derivable",
@@ -51,6 +53,14 @@ export const FIELDS = {
   handshake: {
     properties: ["protocolVersion", "name", "version", "languages", "capabilities"],
     required: ["protocolVersion", "name", "version", "languages", "capabilities"],
+  },
+  "init-req": {
+    properties: ["root", "document", "force"],
+    required: ["root", "document"],
+  },
+  "init-result": {
+    properties: ["written", "next"],
+    required: ["written"],
   },
   "collect-result": {
     properties: [
@@ -183,6 +193,17 @@ export interface Handshake {
   version: string;
   languages: string[];
   capabilities: Capability[];
+}
+
+export interface InitReq {
+  root: string;
+  document: DocumentDecl;
+  force?: boolean;
+}
+
+export interface InitResult {
+  written: string[];
+  next: string[];
 }
 
 export interface SatisfiesSpec {

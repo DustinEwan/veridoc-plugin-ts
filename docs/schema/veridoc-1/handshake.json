@@ -39,6 +39,7 @@
       "description": "A method family the plugin answers. A missing capability is reported, never silently\ntreated as a pass; the engine's behaviour per absence is fixed by the capability table in\n`docs/spec.md`.",
       "type": "string",
       "enum": [
+        "initialization",
         "collect",
         "resolution",
         "derivability",

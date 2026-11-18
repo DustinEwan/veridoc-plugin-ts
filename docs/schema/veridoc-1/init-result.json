@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InitResult",
+  "description": "What `init` reports: the files the plugin created, and the work only the author can do.",
+  "type": "object",
+  "properties": {
+    "next": {
+      "description": "One sentence each: the claims to declare, the prose to write, the command to run next.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "written": {
+      "description": "Every file the plugin created, relative to `root`.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "written"
+  ]
+}

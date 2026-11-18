@@ -13,6 +13,7 @@ import {
   PLUGIN_VERSION,
   PROTOCOL_VERSION,
   type Citation,
+  type InitReq,
   type RunRequest,
 } from "./protocol.js";
 import { isRecord } from "./guards.js";
@@ -20,6 +21,7 @@ import { collect } from "./collect.js";
 import { derivableFacts, resolveRefs, surfaceList } from "./program.js";
 import { bivalenceFor, claimIndex } from "./bivalence.js";
 import { run } from "./run.js";
+import { init } from "./init.js";
 import { cite } from "./cite.js";
 
 class InvalidRequest extends Error {}
@@ -63,6 +65,20 @@ async function dispatch(method: string, params: unknown): Promise<unknown> {
         languages: [...LANGUAGES],
         capabilities: [...CAPABILITIES],
       };
+    case "init": {
+      const request = body as unknown as InitReq;
+      const document = request.document as unknown as Record<string, unknown> | undefined;
+      if (
+        typeof request.root !== "string" ||
+        document === undefined ||
+        typeof document.path !== "string" ||
+        typeof document.audience !== "string" ||
+        typeof document.question !== "string"
+      ) {
+        throw new InvalidRequest("the init request is missing root or a document field");
+      }
+      return init(request);
+    }
     case "collect":
       return collect(requireString(body, "root"));
     case "resolve": {

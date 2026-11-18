@@ -34,7 +34,3 @@ jobs:
       - name: Validate this plugin's checkout
         run: veridoc validate-plugin
 
-      # The example names this repository's built server directly and reads its
-      # authoring packages from the workspace; a green check is the end-to-end gate.
-      - name: The example runs green
-        run: veridoc check --project examples/scanner
