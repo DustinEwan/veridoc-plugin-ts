@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Request",
-  "description": "A request. `id` is assigned by the engine and echoed on the matching response.",
+  "description": "A request message. `id` is assigned by the host and echoed on the matching response\n(spec §4).",
   "type": "object",
   "properties": {
     "id": {
@@ -16,7 +16,7 @@
       "type": "string"
     },
     "params": {
-      "description": "`params` is omitted, not `null`, for `handshake` and `surface`."
+      "description": "Omitted, not `null`, when the method takes no parameters (spec §4)."
     }
   },
   "required": [
@@ -26,7 +26,7 @@
   ],
   "$defs": {
     "JsonRpcVersion": {
-      "description": "The only protocol revision this build speaks.",
+      "description": "The only JSON-RPC revision this mechanism speaks.",
       "type": "string",
       "enum": [
         "2.0"

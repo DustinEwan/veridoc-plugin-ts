@@ -185,39 +185,36 @@
       ]
     },
     "SectionResult": {
-      "description": "One parsed `.spec.md` section with the spans the engine issued and the claims it selected.",
+      "description": "One parsed `.spec.md` section with the spans the engine issued and the claims it names.",
       "type": "object",
       "properties": {
-        "anchor": {
-          "type": "string"
-        },
-        "file": {
-          "type": "string"
-        },
-        "heading": {
-          "type": "string"
-        },
-        "selects": {
-          "description": "The resolved claim ids the section selects.",
+        "claims": {
+          "description": "The resolved claim ids the section names.",
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "file": {
+          "type": "string"
         },
         "spans": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/Span"
           }
+        },
+        "subject": {
+          "description": "The subject from the section's opening element.",
+          "type": "string"
         }
       },
       "additionalProperties": false,
       "required": [
         "file",
-        "anchor",
-        "heading",
+        "subject",
         "spans",
-        "selects"
+        "claims"
       ]
     },
     "Span": {
@@ -241,12 +238,6 @@
       "description": "One declared node of the document tree.",
       "type": "object",
       "properties": {
-        "anchor": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "audience": {
           "type": "string"
         },

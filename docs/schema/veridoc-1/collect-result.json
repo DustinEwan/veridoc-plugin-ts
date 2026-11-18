@@ -286,17 +286,13 @@
         },
         "question": {
           "type": "string"
-        },
-        "selects": {
-          "$ref": "#/$defs/Selects"
         }
       },
       "additionalProperties": false,
       "required": [
         "path",
         "audience",
-        "question",
-        "selects"
+        "question"
       ]
     },
     "Kind": {
@@ -354,12 +350,6 @@
         "subject": {
           "$ref": "#/$defs/RefToken"
         },
-        "supports": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "text": {
           "type": "string"
         }
@@ -372,7 +362,6 @@
         "predicate",
         "text",
         "channel",
-        "supports",
         "file",
         "line"
       ]
@@ -432,43 +421,6 @@
       "required": [
         "source"
       ]
-    },
-    "Selects": {
-      "description": "A document node's selection. Every present field must match; an all-`None` `Selects`\nselects nothing and is reported rather than treated as \"select everything\".",
-      "type": "object",
-      "properties": {
-        "claims": {
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "string"
-          }
-        },
-        "concept": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "kind": {
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "$ref": "#/$defs/Kind"
-          }
-        },
-        "referent": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "additionalProperties": false
     },
     "Skipped": {
       "description": "A sidecar that would not import. The engine reports it as a run failure, because a\nsidecar that vanished silently would take its claims with it.",

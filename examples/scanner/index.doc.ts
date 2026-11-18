@@ -9,7 +9,6 @@ tree({
       path: "docs/architecture.spec.md",
       audience: "a developer extending the scanner",
       question: "What does the scanner refuse, and what evidence proves it?",
-      selects: { concept: "project-scan" },
     }),
   ],
 });

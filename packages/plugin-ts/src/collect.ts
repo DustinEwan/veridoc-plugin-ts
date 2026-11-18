@@ -135,7 +135,6 @@ export async function collect(root: string): Promise<CollectResult> {
       predicate: claim.predicate,
       text: claim.text,
       channel: claim.channel,
-      supports: claim.supports,
       file: relPosix(root, writtenIn),
       line: claim.line,
     };

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "S1Verdict",
-  "description": "S1: which selected claims the section does not mention, and which assertions in the\nsection no claim states.",
+  "description": "S1: which named claims the section does not mention, and which assertions in the\nsection no claim states.",
   "type": "object",
   "properties": {
     "unmentionedClaims": {

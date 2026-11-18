@@ -1,13 +1,12 @@
 // The document-tree index builder. `index.doc.ts` calls `tree({concepts, documents})` and
 // the plugin reports the fragment from `collect`; `tree.doc` declares one document node.
 
-import { registerIndex, type DocumentDecl, type Selects } from "@veridoc/claims";
+import { registerIndex, type DocumentDecl } from "@veridoc/claims";
 
 export interface DocInput {
   path: string;
   audience: string;
   question: string;
-  selects: Selects;
   notApplicable?: string;
 }
 
@@ -27,4 +26,4 @@ export namespace tree {
   }
 }
 
-export type { DocumentDecl, Selects };
+export type { DocumentDecl };

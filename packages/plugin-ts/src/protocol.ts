@@ -1,12 +1,12 @@
 // The wire types of the `VeridocPlugin` interface, mirrored by hand from the Rust side.
 // `test/contract.test.mjs` compares every literal below against the committed
-// `docs/schema/vd-1/*.json`, so the TypeScript side cannot drift from the Rust side.
+// `docs/schema/veridoc-1/*.json`, so the TypeScript side cannot drift from the Rust side.
 
 // ---------------------------------------------------------------------------
 // Literals.
 // ---------------------------------------------------------------------------
 
-export const PROTOCOL_VERSION = "vd/1";
+export const PROTOCOL_VERSION = "veridoc/1";
 export const PLUGIN_NAME = "veridoc-plugin-ts";
 export const PLUGIN_VERSION = "0.1.0";
 export const LANGUAGES = ["typescript"] as const;
@@ -80,7 +80,6 @@ export const FIELDS = {
       "predicate",
       "text",
       "channel",
-      "supports",
       "file",
       "line",
     ],
@@ -91,7 +90,6 @@ export const FIELDS = {
       "predicate",
       "text",
       "channel",
-      "supports",
       "file",
       "line",
     ],
@@ -101,8 +99,8 @@ export const FIELDS = {
     required: [],
   },
   "document-decl": {
-    properties: ["path", "audience", "question", "selects", "notApplicable"],
-    required: ["path", "audience", "question", "selects"],
+    properties: ["path", "audience", "question", "notApplicable"],
+    required: ["path", "audience", "question"],
   },
   "observable-decl": {
     properties: ["name", "type"],
@@ -111,10 +109,6 @@ export const FIELDS = {
   "action-decl": {
     properties: ["name", "calls", "produces"],
     required: ["name", "calls", "produces"],
-  },
-  selects: {
-    properties: ["concept", "kind", "referent", "claims"],
-    required: [],
   },
   artefact: {
     properties: ["path", "sha256"],
@@ -226,18 +220,10 @@ export interface Channel {
   citation?: Citation | null;
 }
 
-export interface Selects {
-  concept?: string | null;
-  kind?: Kind[] | null;
-  referent?: string | null;
-  claims?: string[] | null;
-}
-
 export interface DocumentDecl {
   path: string;
   audience: string;
   question: string;
-  selects: Selects;
   notApplicable?: string | null;
 }
 
@@ -264,7 +250,6 @@ export interface RawClaim {
   predicate: string;
   text: string;
   channel: Channel;
-  supports: string[];
   file: string;
   line: number;
 }

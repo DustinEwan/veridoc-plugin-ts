@@ -1,5 +1,5 @@
 {
-  "protocol": "vd/1",
+  "protocol": "veridoc/1",
   "plugin": { "command": ["node", "../../packages/plugin-ts/dist/server.js"] },
   "coverage": { "required": 0.6 },
   "run": { "scenarioDeadlineMs": 30000 },

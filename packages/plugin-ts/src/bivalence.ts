@@ -13,7 +13,7 @@ import { predicates } from "@veridoc/claims";
 import type { Asserts, BivalenceResult, Check, RawClaim } from "./protocol.js";
 import { subjectKey } from "./program.js";
 import { getState } from "./state.js";
-import { claimId } from "./ids.js";
+import { claimNames } from "./ids.js";
 
 const ALLOWED_GLOBALS: Record<string, true> = {
   Number: true,
@@ -449,12 +449,21 @@ export function bivalenceFor(claim: RawClaim): BivalenceResult {
   };
 }
 
-/** Find the registered claim whose engine-computed id matches, or undefined. */
-export function claimForId(id: string): RawClaim | undefined {
+/**
+ * Every collected claim whose subject resolved, keyed by the name the engine gives it:
+ * `<subject>#<slug>`, where `<subject>` is the author's subject name, with the collision suffix
+ * on each name two claims slug alike. Claims with an unresolved subject are left out, because the
+ * engine names only the claims it bound.
+ */
+export function claimIndex(): Map<string, RawClaim> {
   const state = getState();
-  return state.claims.find((claim) => {
-    const referent = state.referents.get(subjectKey(claim.subject));
-    if (referent === undefined) return false;
-    return claimId(referent.referentId, claim.predicate) === id;
-  });
+  const bound: { claim: RawClaim; subjectName: string; predicate: string }[] = [];
+  for (const claim of state.claims) {
+    if (!state.referents.has(subjectKey(claim.subject))) continue;
+    bound.push({ claim, subjectName: claim.subject.name, predicate: claim.predicate });
+  }
+  const names = claimNames(bound);
+  const index = new Map<string, RawClaim>();
+  bound.forEach((entry, i) => index.set(names[i], entry.claim));
+  return index;
 }

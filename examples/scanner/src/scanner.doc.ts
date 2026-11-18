@@ -1,5 +1,8 @@
 // The claim sidecar: one `ensures` claim bound to the scenario, one `witness` claim on
-// the artefact channel, and one `because` claim on the citation channel.
+// the artefact channel, and one `because` claim on the citation channel. All three are about
+// `parseConfig`, and that name — the subject's own, not the file it sits in — is the left half
+// of every name the build prints, `parseConfig#rejects-missing-config`. Each is named by a
+// `<doc-claim>` inside a `docs/architecture.spec.md` section that opens with that subject.
 
 import { claim, contains, equals, ref, scenario, all } from "@veridoc/claims";
 import * as scanner from "./scanner.ts";
@@ -14,7 +17,6 @@ claim.ensures({
     { obs: "exit.code", is: equals(2) },
     { obs: "stderr.text", is: contains("config.json") },
   ),
-  supports: ["docs/architecture.spec.md#refuses"],
 });
 
 claim.witness({
@@ -26,7 +28,6 @@ claim.witness({
     path: "fixtures/empty-directory.sample",
     sha256: "eb9689f4e89f0b8b88f6fde235f1d5d9329c3056a21e6f451e36f23604ff8394",
   },
-  supports: ["docs/architecture.spec.md#evidence"],
 });
 
 claim.because({
@@ -35,5 +36,4 @@ claim.because({
   predicate: "exit-code-2-decision",
   text: "Exit code 2 is the refusal code because the session log records that choice for missing-input failures.",
   citation: { store: "session", id: "2026-11-12-exit-codes", turn: 1 },
-  supports: ["docs/architecture.spec.md#evidence"],
 });

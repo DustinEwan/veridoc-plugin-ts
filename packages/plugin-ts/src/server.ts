@@ -18,7 +18,7 @@ import {
 import { isRecord } from "./guards.js";
 import { collect } from "./collect.js";
 import { derivableFacts, resolveRefs, surfaceList } from "./program.js";
-import { bivalenceFor, claimForId } from "./bivalence.js";
+import { bivalenceFor, claimIndex } from "./bivalence.js";
 import { run } from "./run.js";
 import { cite } from "./cite.js";
 
@@ -75,9 +75,9 @@ async function dispatch(method: string, params: unknown): Promise<unknown> {
     case "derivable":
       return derivableFacts(requireString(body, "referentId"));
     case "bivalence": {
-      const id = requireString(body, "claimId");
-      const claim = claimForId(id);
-      if (claim === undefined) throw new Error(`no claim with id ${id} was collected`);
+      const name = requireString(body, "claimId");
+      const claim = claimIndex().get(name);
+      if (claim === undefined) throw new Error(`no claim named ${name} was collected`);
       return bivalenceFor(claim);
     }
     case "run": {

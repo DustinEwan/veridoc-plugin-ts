@@ -10,7 +10,7 @@ import ts from "typescript";
 
 // ---------------------------------------------------------------------------
 // Wire shapes (mirrored by hand; `packages/plugin-ts/test/contract.test.mjs`
-// checks them against the committed `docs/schema/vd-1/*.json`).
+// checks them against the committed `docs/schema/veridoc-1/*.json`).
 // ---------------------------------------------------------------------------
 
 export type Kind = "requires" | "ensures" | "invariant" | "witness" | "because";
@@ -54,13 +54,6 @@ export interface Channel {
   citation?: Citation;
 }
 
-export interface Selects {
-  concept?: string;
-  kind?: Kind[];
-  referent?: string;
-  claims?: string[];
-}
-
 export interface ObservableDecl {
   name: string;
   type: string;
@@ -76,7 +69,6 @@ export interface DocumentDecl {
   path: string;
   audience: string;
   question: string;
-  selects: Selects;
   notApplicable?: string;
 }
 
@@ -98,7 +90,6 @@ export interface RegisteredClaim {
   predicate: string;
   text: string;
   channel: Channel;
-  supports: string[];
   file: string;
   line: number;
 }
@@ -416,7 +407,6 @@ export interface ClaimArgs {
   concept: string;
   predicate: string;
   text: string;
-  supports?: string[];
   scenario?: string;
   asserts?: Asserts;
   artefact?: Artefact;
@@ -437,7 +427,6 @@ function register(kind: Kind, args: ClaimArgs): void {
     predicate: args.predicate,
     text: args.text,
     channel,
-    supports: args.supports ?? [],
     file: where.file,
     line: where.line,
   });

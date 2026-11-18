@@ -45,9 +45,9 @@ it in-process; the Rust suite in the veridoc repository drives it over the wire.
 ## Tests
 
 ```sh
-npm test   # builds, then the protocol contract test, the bivalence test, and the emitter test
+npm test   # builds, then the protocol contract test, the claim-name test, the bivalence test, and the emitter test
 ```
 
-`docs/schema/vd-1/` is a copy of the committed protocol schemas; the contract test compares
+`docs/schema/veridoc-1/` is a copy of the committed protocol schemas; the contract test compares
 every TypeScript literal against it. Refresh the copy when the veridoc repository regenerates
 the schemas.

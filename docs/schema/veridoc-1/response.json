@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Response",
-  "description": "A response, discriminated by the presence of `result` or `error`.",
+  "description": "A response message, discriminated by the presence of `result` or `error` (spec §4).",
   "anyOf": [
     {
       "$ref": "#/$defs/Success"
@@ -12,7 +12,7 @@
   ],
   "$defs": {
     "ErrorObject": {
-      "description": "An error response.",
+      "description": "The `error` object of a refusal. A profile that needs more detail than the code and the text\nputs a typed reason in `data` (spec §5).",
       "type": "object",
       "properties": {
         "code": {
@@ -30,7 +30,7 @@
       ]
     },
     "Failure": {
-      "description": "A failure response.",
+      "description": "A response whose envelope carries `error`: a refusal. A refusal is an answer, not a loss\n(spec §8).",
       "type": "object",
       "properties": {
         "error": {
@@ -52,14 +52,14 @@
       ]
     },
     "JsonRpcVersion": {
-      "description": "The only protocol revision this build speaks.",
+      "description": "The only JSON-RPC revision this mechanism speaks.",
       "type": "string",
       "enum": [
         "2.0"
       ]
     },
     "Success": {
-      "description": "A successful response.",
+      "description": "A response whose envelope carries `result`.",
       "type": "object",
       "properties": {
         "id": {

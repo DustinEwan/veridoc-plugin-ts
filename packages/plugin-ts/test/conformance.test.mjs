@@ -15,7 +15,7 @@ const collectModule = await import("../dist/collect.js");
 const bivalence = await import("../dist/bivalence.js");
 
 test("the rendered fixture collects clean and answers every probe", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "vd-emitter-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "veridoc-emitter-"));
   const root = emitter.render(dir);
   try {
     const result = await collectModule.collect(root);

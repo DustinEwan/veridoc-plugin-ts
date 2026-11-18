@@ -1,5 +1,5 @@
 // Checks every literal the TypeScript side publishes against the committed
-// `docs/schema/vd-1/*.json`, so the TypeScript side cannot drift from the Rust side.
+// `docs/schema/veridoc-1/*.json`, so the TypeScript side cannot drift from the Rust side.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -7,14 +7,14 @@ import { readFileSync } from "node:fs";
 
 const protocol = await import("../dist/protocol.js");
 
-const schemaDir = new URL("../../../docs/schema/vd-1/", import.meta.url);
+const schemaDir = new URL("../../../docs/schema/veridoc-1/", import.meta.url);
 
 function schema(name) {
   return JSON.parse(readFileSync(new URL(`${name}.json`, schemaDir), "utf8"));
 }
 
 test("handshake literals match the contract", () => {
-  assert.equal(protocol.PROTOCOL_VERSION, "vd/1");
+  assert.equal(protocol.PROTOCOL_VERSION, "veridoc/1");
   assert.equal(protocol.PLUGIN_NAME, "veridoc-plugin-ts");
   assert.equal(protocol.PLUGIN_VERSION, "0.1.0");
   assert.deepEqual([...protocol.LANGUAGES], ["typescript"]);
@@ -33,7 +33,7 @@ test("the capability list matches the committed enum", () => {
   assert.deepEqual(
     [...protocol.CAPABILITIES],
     schema("capability").enum,
-    "capabilities must equal docs/schema/vd-1/capability.json",
+    "capabilities must equal docs/schema/veridoc-1/capability.json",
   );
 });
 

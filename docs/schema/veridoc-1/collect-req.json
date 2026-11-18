@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CollectReq",
+  "description": "The `params` of `collect`: the one project root the plugin indexes.",
+  "type": "object",
+  "properties": {
+    "root": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "root"
+  ]
+}

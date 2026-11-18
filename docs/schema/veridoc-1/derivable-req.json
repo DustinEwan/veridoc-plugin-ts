@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DerivableReq",
+  "description": "The `params` of `derivable`: the referent whose declaration is read for the facts a reader\ncan already see in it.",
+  "type": "object",
+  "properties": {
+    "referentId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "referentId"
+  ]
+}

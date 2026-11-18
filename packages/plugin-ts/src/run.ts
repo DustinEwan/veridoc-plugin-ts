@@ -7,7 +7,7 @@ import path from "node:path";
 import { predicates, type ActionRun } from "@veridoc/claims";
 import { getState } from "./state.js";
 import { loadModule } from "./transpile.js";
-import { claimForId } from "./bivalence.js";
+import { claimIndex } from "./bivalence.js";
 import type { Asserts, Check, Observed, RunFailure, RunRequest, RunResponse } from "./protocol.js";
 
 function message(error: unknown): string {
@@ -76,13 +76,15 @@ export async function run(request: RunRequest): Promise<RunResponse> {
     return { observable: entry.name, value: JSON.stringify(value ?? null) };
   });
 
-  // Leaves arrive as `{claim_id}#l{n}`; the plugin recomputes the id from its own
-  // registry to find each leaf's predicate and observable.
+  // Leaves arrive as `{claim name}#l{n}`; a name carries its own `#`, so the leaf mark is the
+  // last one. The plugin recomputes each collected claim's name from its own registry,
+  // collision suffix included, to find the leaf's predicate and observable.
+  const claimsByName = claimIndex();
   const satisfied = request.leaves.map((leaf) => {
     const mark = leaf.leafId.lastIndexOf("#l");
     const claimPart = mark < 0 ? leaf.leafId : leaf.leafId.slice(0, mark);
     const index = mark < 0 ? 0 : Number(leaf.leafId.slice(mark + 2));
-    const owner = claimForId(claimPart);
+    const owner = claimsByName.get(claimPart);
     const asserts = owner?.channel.asserts;
     if (asserts === undefined || asserts === null) {
       return { leafId: leaf.leafId, ok: true };

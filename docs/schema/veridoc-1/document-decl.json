@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DocumentDecl",
+  "description": "One declared document node, as `index.doc.ts` reports it.",
+  "type": "object",
+  "properties": {
+    "audience": {
+      "type": "string"
+    },
+    "notApplicable": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "path": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "path",
+    "audience",
+    "question"
+  ]
+}

@@ -27,12 +27,6 @@
     "subject": {
       "$ref": "#/$defs/RefToken"
     },
-    "supports": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
     "text": {
       "type": "string"
     }
@@ -45,7 +39,6 @@
     "predicate",
     "text",
     "channel",
-    "supports",
     "file",
     "line"
   ],

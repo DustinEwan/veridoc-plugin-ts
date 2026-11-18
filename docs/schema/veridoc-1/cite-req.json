@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CiteReq",
+  "description": "The `params` of `cite`: the citations to resolve against their declared stores.",
+  "type": "object",
+  "properties": {
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Citation"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "citations"
+  ],
+  "$defs": {
+    "Citation": {
+      "description": "A typed citation against a declared store.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "store": {
+          "type": "string"
+        },
+        "turn": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "store",
+        "id"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BivalenceReq",
+  "description": "The `params` of `bivalence`: the claim whose predicates must each settle to one value.",
+  "type": "object",
+  "properties": {
+    "claimId": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "claimId"
+  ]
+}

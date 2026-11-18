@@ -12,6 +12,11 @@ import { mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+/** The subject the fixture's claims carry: the name `ref(probe.probe)` gives the symbol, which
+ * is what a `<doc-section name="…">` must repeat to name them — the author's subject name, never
+ * a path-derived referent id (`veridoc/docs/decisions/0009-the-subject-is-named-not-derived-from-a-path.md`). */
+const SUBJECT = "probe";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 const MANIFEST = {
@@ -93,7 +98,6 @@ claim.ensures({
     { obs: "exit.code", is: equals(2) },
     { obs: "stderr.text", is: contains("config.json") },
   ),
-  supports: ["docs/architecture.spec.md#refuses"],
 });
 
 claim.ensures({
@@ -103,7 +107,6 @@ claim.ensures({
   text: "The always-true probe predicate holds of every exit code, so it divides no pair of outcomes.",
   scenario: scenario("probe/refuses-missing-root"),
   asserts: { obs: "exit.code", is: satisfies((x: unknown) => true) },
-  supports: [],
 });
 
 claim.ensures({
@@ -116,7 +119,6 @@ claim.ensures({
     obs: "exit.code",
     is: satisfies((x: unknown) => typeof x === "string" || true),
   },
-  supports: [],
 });
 
 claim.ensures({
@@ -126,7 +128,6 @@ claim.ensures({
   text: "The self-equality probe predicate compares a value to itself, so no value can fail it.",
   scenario: scenario("probe/refuses-missing-root"),
   asserts: { obs: "exit.code", is: satisfies((x: unknown) => x === x) },
-  supports: [],
 });
 
 claim.ensures({
@@ -136,7 +137,6 @@ claim.ensures({
   text: "The non-negative-length probe predicate holds of every string, because a length is never negative.",
   scenario: scenario("probe/refuses-missing-root"),
   asserts: { obs: "stderr.text", is: satisfies((s: string) => s.length >= 0) },
-  supports: [],
 });
 
 claim.ensures({
@@ -146,7 +146,6 @@ claim.ensures({
   text: "The positive-length probe predicate separates the empty diagnostic from every other one.",
   scenario: scenario("probe/refuses-missing-root"),
   asserts: { obs: "stderr.text", is: satisfies((s: string) => s.length > 0) },
-  supports: [],
 });
 `;
 
@@ -205,7 +204,6 @@ tree({
       path: "docs/architecture.spec.md",
       audience: "a plugin author reading the conformance fixture",
       question: "What does the fixture refuse, and what evidence proves it?",
-      selects: { concept: "probe-scan" },
     }),
   ],
 });
@@ -221,10 +219,18 @@ const FEATURE = `Feature: probe
 
 const SPEC_MD = `# Conformance fixture architecture
 
+<doc-section name="${SUBJECT}">
+
 ## Refuses
 
 The fixture's \`probe\` reads one directory and refuses to guess: a directory without
-\`config.json\` is a refusal with exit code 2, and the message names the missing file.
+\`config.json\` is a refusal with exit code 2 <doc-claim name="rejects-missing-project-root"/>,
+and the message names the missing file.
+
+The five bivalence probes are named here too, so every claim the fixture reports has a
+section that names it: <doc-claim name="always-true"/>, <doc-claim name="or-true"/>,
+<doc-claim name="self-equal"/>, <doc-claim name="length-nonneg"/>, and
+<doc-claim name="length-positive"/>.
 `;
 
 function write(root: string, rel: string, text: string): void {
