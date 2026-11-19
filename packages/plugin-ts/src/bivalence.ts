@@ -1,8 +1,8 @@
 // Bivalence. A structured `equals`/`contains` answers `structural` after checking the
-// expected value against the declared observable type. A `satisfies` predicate is parsed
-// with the compiler API and decided by interval reasoning over each projection's declared
-// domain; when the analysis cannot settle the question the answer is `witnesses`, taken
-// from evaluating the predicate on the two recorded witness values.
+// expected value against the type the claim's own scenario declares for it. A `satisfies`
+// predicate is parsed with the compiler API and decided by interval reasoning over each
+// projection's declared domain; when the analysis cannot settle the question the answer is
+// `witnesses`, taken from evaluating the predicate on the two recorded witness values.
 //
 // The four required negatives from the spec — `x => true`, `typeof x === "string" || true`,
 // `x => x === x`, and `s => s.length >= 0` — all come back not bivalent, and
@@ -11,9 +11,7 @@
 import ts from "typescript";
 import { predicates } from "@veridoc/claims";
 import type { Asserts, BivalenceResult, Check, RawClaim } from "./protocol.js";
-import { subjectKey } from "./program.js";
 import { getState } from "./state.js";
-import { claimNames } from "./ids.js";
 
 const ALLOWED_GLOBALS: Record<string, true> = {
   Number: true,
@@ -49,7 +47,7 @@ function domainOf(declaredType: string): DomainKind {
       return "number";
     case "string":
       return "string";
-    case "string[]":
+    case "array":
       return "stringArray";
     case "boolean":
       return "boolean";
@@ -114,7 +112,7 @@ function compareIntervals(op: string, left: Interval, right: Interval): Tri | un
   return { canTrue: exists(operator), canFalse: exists(inverse) };
 }
 
-/** Static verdict for one predicate source over one declared observable type. */
+/** Static verdict for one predicate source over one declared value type. */
 export interface PredicateAnalysis {
   decidable: boolean;
   bivalent?: boolean;
@@ -375,26 +373,32 @@ function typeAllows(declaredType: string, expected: unknown, check: "equals" | "
   }
 }
 
-/** The claim-level bivalence answer for one scenario-channel claim. */
-export function bivalenceFor(claim: RawClaim): BivalenceResult {
+/**
+ * The claim-level bivalence answer for one claim, checked against the value types its own
+ * scenario declares — the declaration that makes `contains` over a number a refusal rather
+ * than a false verdict (`0006`).
+ */
+export function bivalenceFor(claim: RawClaim, claimId: string): BivalenceResult {
   const asserts = claim.channel.asserts;
   if (asserts === undefined || asserts === null) {
     return { bivalent: false, method: "structural", reason: "the claim declares no assertion tree" };
   }
-  const state = getState();
-  const observableTypes = new Map(state.observables.map((o) => [o.name, o.type]));
+  const scenario = getState().scenarios.get(claimId);
+  const declaredTypes = new Map(
+    (scenario?.values ?? []).map((value) => [value.name, value.type]),
+  );
   const leaves = preorder(asserts);
 
   let sawSatisfies = false;
   let undecided = false;
   for (const leaf of leaves) {
-    const declaredType = observableTypes.get(leaf.obs) ?? "unknown";
+    const declaredType = declaredTypes.get(leaf.obs) ?? "unknown";
     if ("equals" in leaf.is) {
       if (!typeAllows(declaredType, leaf.is.equals, "equals")) {
         return {
           bivalent: false,
           method: "structural",
-          reason: `equals ${JSON.stringify(leaf.is.equals)} does not fit observable ${leaf.obs} of type ${declaredType}`,
+          reason: `equals ${JSON.stringify(leaf.is.equals)} does not fit value ${leaf.obs} of type ${declaredType}`,
         };
       }
       continue;
@@ -404,7 +408,7 @@ export function bivalenceFor(claim: RawClaim): BivalenceResult {
         return {
           bivalent: false,
           method: "structural",
-          reason: `contains ${JSON.stringify(leaf.is.contains)} does not fit observable ${leaf.obs} of type ${declaredType}`,
+          reason: `contains ${JSON.stringify(leaf.is.contains)} does not fit value ${leaf.obs} of type ${declaredType}`,
         };
       }
       continue;
@@ -447,23 +451,4 @@ export function bivalenceFor(claim: RawClaim): BivalenceResult {
         ? undefined
         : "a witness does not answer as the predicate requires",
   };
-}
-
-/**
- * Every collected claim whose subject resolved, keyed by the name the engine gives it:
- * `<subject>#<slug>`, where `<subject>` is the author's subject name, with the collision suffix
- * on each name two claims slug alike. Claims with an unresolved subject are left out, because the
- * engine names only the claims it bound.
- */
-export function claimIndex(): Map<string, RawClaim> {
-  const state = getState();
-  const bound: { claim: RawClaim; subjectName: string; predicate: string }[] = [];
-  for (const claim of state.claims) {
-    if (!state.referents.has(subjectKey(claim.subject))) continue;
-    bound.push({ claim, subjectName: claim.subject.name, predicate: claim.predicate });
-  }
-  const names = claimNames(bound);
-  const index = new Map<string, RawClaim>();
-  bound.forEach((entry, i) => index.set(names[i], entry.claim));
-  return index;
 }

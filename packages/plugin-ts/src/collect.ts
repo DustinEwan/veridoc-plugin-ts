@@ -1,7 +1,7 @@
-// `collect`: walk the project for `index.doc.ts`, every `*.doc.ts`, and every `*.obs.ts`,
-// and dynamic-import each between `beginCollection` and `endCollection`. A sidecar that
-// throws on import becomes a `skipped` entry carrying the error message; the engine turns
-// that into a run failure, because claims must not vanish silently.
+// `collect`: walk the project for `index.doc.ts` and every other `*.doc.ts`, and
+// dynamic-import each between `beginCollection` and `endCollection`. A module that throws on
+// import becomes a `skipped` entry carrying the error message; the engine turns that into a
+// run failure, because claims must not vanish silently.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -9,13 +9,18 @@ import { pathToFileURL } from "node:url";
 import {
   beginCollection,
   endCollection,
-  type ActionEntry,
-  type FixtureEntry,
-  type ObservableDecl,
   type Registered,
   type RegisteredClaim,
+  type RegisteredScenario,
 } from "@veridoc/claims";
-import type { CollectResult, DocumentDecl, RawClaim, Skipped } from "./protocol.js";
+import type {
+  CollectResult,
+  DocumentDecl,
+  RawClaim,
+  ScenarioDecl,
+  Skipped,
+} from "./protocol.js";
+import { claimNames } from "./ids.js";
 import { setState, type ProjectState, type VeridocConfig } from "./state.js";
 
 const SKIP_DIRS: Record<string, true> = {
@@ -25,17 +30,13 @@ const SKIP_DIRS: Record<string, true> = {
   out: true,
 };
 
-function isSidecar(name: string): boolean {
-  return name === "index.doc.ts" || name.endsWith(".doc.ts") || name.endsWith(".obs.ts");
-}
-
 function walk(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       if (entry.name.startsWith(".") || entry.name in SKIP_DIRS) continue;
       walk(full, out);
-    } else if (entry.isFile() && isSidecar(entry.name)) {
+    } else if (entry.isFile() && entry.name.endsWith(".doc.ts")) {
       out.push(full);
     }
   }
@@ -89,16 +90,13 @@ export async function collect(root: string): Promise<CollectResult> {
 
   const skipped: Skipped[] = [];
   const claims: { sidecar: string; claim: RegisteredClaim }[] = [];
-  const observables: ObservableDecl[] = [];
-  const actions: { sidecar: string; entry: ActionEntry }[] = [];
-  const fixtures: FixtureEntry[] = [];
   const documents: DocumentDecl[] = [];
   const concepts: string[] = [];
 
   for (const file of files) {
     beginCollection(file);
     try {
-      // The sidecar paths are discovered at runtime from the project on disk; a static
+      // The claim modules are discovered at runtime from the project on disk; a static
       // import cannot name them.
       await import(pathToFileURL(file).href);
     } catch (error) {
@@ -109,9 +107,6 @@ export async function collect(root: string): Promise<CollectResult> {
     } finally {
       const registered: Registered = endCollection();
       for (const claim of registered.claims) claims.push({ sidecar: file, claim });
-      observables.push(...registered.observables);
-      for (const entry of registered.actions) actions.push({ sidecar: file, entry });
-      fixtures.push(...registered.fixtures);
       for (const document of registered.documents) documents.push(document);
       for (const concept of registered.concepts) {
         if (!concepts.includes(concept)) concepts.push(concept);
@@ -119,9 +114,18 @@ export async function collect(root: string): Promise<CollectResult> {
     }
   }
 
-  const wireClaims: RawClaim[] = claims.map(({ sidecar, claim }) => {
+  // The id the engine addresses a claim by is `<subject>#<predicate-slug>`, built from the
+  // author's own words and nothing else, so every claim is named before any of their referents
+  // has resolved. It travels on the claim, keys `scenarios`, and is the only thing `run` is
+  // asked for; the engine uses it verbatim rather than re-slugging the predicate (`0006`).
+  const claimIds = claimNames(
+    claims.map(({ claim }) => ({ subjectName: claim.subject.name, predicate: claim.predicate })),
+  );
+
+  const wireClaims: RawClaim[] = claims.map(({ sidecar, claim }, index) => {
     const writtenIn = claim.file.length > 0 ? claim.file : sidecar;
     return {
+      id: claimIds[index],
       kind: claim.kind,
       subject:
         claim.subject.kind === "symbol"
@@ -140,29 +144,21 @@ export async function collect(root: string): Promise<CollectResult> {
     };
   });
 
-  const wireActions = actions.map(({ sidecar, entry }) => ({
-    name: entry.name,
-    calls:
-      entry.calls.kind === "symbol"
-        ? {
-            kind: "symbol" as const,
-            name: entry.calls.name,
-            from: normalizeFrom(root, entry.calls.from, sidecar),
-          }
-        : entry.calls,
-    produces: entry.produces,
-  }));
+  const scenarios: Record<string, ScenarioDecl> = {};
+  const live = new Map<string, RegisteredScenario>();
+  claims.forEach(({ claim }, index) => {
+    const scenario = claim.scenario;
+    if (scenario === undefined) return;
+    const id = claimIds[index];
+    scenarios[id] = { given: scenario.given, when: scenario.when, values: scenario.values };
+    live.set(id, scenario);
+  });
 
   const state: ProjectState = {
     root,
     config: readConfig(root),
     claims: wireClaims,
-    observables,
-    actions: actions.map(({ sidecar, entry }, index) => ({
-      ...entry,
-      calls: wireActions[index].calls,
-    })),
-    fixtures,
+    scenarios: live,
     documents,
     concepts,
     referents: new Map(),
@@ -173,9 +169,7 @@ export async function collect(root: string): Promise<CollectResult> {
     concepts,
     documents,
     claims: wireClaims,
-    observables,
-    actions: wireActions,
-    fixtures: fixtures.map((f) => f.name),
+    scenarios,
     skipped,
   };
   cached = { root, result };

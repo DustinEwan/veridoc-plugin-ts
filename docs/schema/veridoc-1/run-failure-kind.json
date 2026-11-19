@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RunFailureKind",
-  "description": "Why a scenario could not run. Never a claim state.",
+  "description": "Why a scenario could not run. Never a claim stronger than `run-failed`, and never the whole\nbuild's result (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).\n`Fixture` is the scenario's own world or the assets it reads, not a declared fixture: with no\nfixture registry there is no name to check before the run, so a missing world is discovered here.",
   "type": "string",
   "enum": [
     "build",

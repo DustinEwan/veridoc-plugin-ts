@@ -14,15 +14,15 @@ import {
   PROTOCOL_VERSION,
   type Citation,
   type InitReq,
-  type RunRequest,
 } from "./protocol.js";
 import { isRecord } from "./guards.js";
 import { collect } from "./collect.js";
 import { derivableFacts, resolveRefs, surfaceList } from "./program.js";
-import { bivalenceFor, claimIndex } from "./bivalence.js";
+import { bivalenceFor } from "./bivalence.js";
 import { run } from "./run.js";
 import { init } from "./init.js";
 import { cite } from "./cite.js";
+import { claimById } from "./state.js";
 
 class InvalidRequest extends Error {}
 class UnknownMethod extends Error {}
@@ -92,23 +92,16 @@ async function dispatch(method: string, params: unknown): Promise<unknown> {
       return derivableFacts(requireString(body, "referentId"));
     case "bivalence": {
       const name = requireString(body, "claimId");
-      const claim = claimIndex().get(name);
+      const claim = claimById(name);
       if (claim === undefined) throw new Error(`no claim named ${name} was collected`);
-      return bivalenceFor(claim);
+      return bivalenceFor(claim, name);
     }
     case "run": {
-      const request = body as unknown as RunRequest;
-      if (
-        typeof request.scenarioId !== "string" ||
-        typeof request.fixture !== "string" ||
-        typeof request.action !== "string" ||
-        !Array.isArray(request.args) ||
-        typeof request.deadlineMs !== "number" ||
-        !Array.isArray(request.leaves)
-      ) {
-        throw new InvalidRequest("the run request is missing a field");
+      const claim = requireString(body, "claim");
+      if (typeof body.timeoutMs !== "number") {
+        throw new InvalidRequest("the run request needs a numeric timeoutMs");
       }
-      return run(request);
+      return run({ claim, timeoutMs: body.timeoutMs });
     }
     case "cite": {
       const citations = body.citations;

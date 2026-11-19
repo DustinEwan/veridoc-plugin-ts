@@ -1,58 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RunRequest",
-  "description": "One scenario run. The engine parses the scenario and passes the leaves; the plugin answers\nvalues and never a verdict.",
+  "description": "One scenario run, addressed by the claim it belongs to. The scenario has no identity of its\nown and no action or fixture name travels: the claim's id is the only address, and the plugin\nruns the code that was declared beside that claim\n(`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).\n\nA scenario that cannot run answers a JSON-RPC error with code `-32000` and a message naming\nthe claim; the host records that as the claim's `run-failed` result and keeps judging.",
   "type": "object",
   "properties": {
-    "action": {
+    "claim": {
       "type": "string"
     },
-    "args": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "deadlineMs": {
+    "timeoutMs": {
+      "description": "The engine's own wait, so the plugin can stop itself before the host kills the call.",
       "type": "integer",
       "format": "uint64",
       "minimum": 0
-    },
-    "fixture": {
-      "type": "string"
-    },
-    "leaves": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/RunLeaf"
-      }
-    },
-    "scenarioId": {
-      "type": "string"
     }
   },
   "additionalProperties": false,
   "required": [
-    "scenarioId",
-    "fixture",
-    "action",
-    "args",
-    "deadlineMs",
-    "leaves"
-  ],
-  "$defs": {
-    "RunLeaf": {
-      "description": "One leaf the engine asks the plugin to evaluate, addressed by the id the engine issued.",
-      "type": "object",
-      "properties": {
-        "leafId": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "leafId"
-      ]
-    }
-  }
+    "claim",
+    "timeoutMs"
+  ]
 }

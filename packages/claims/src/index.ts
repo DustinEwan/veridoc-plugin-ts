@@ -1,7 +1,9 @@
-// The authoring vocabulary: every claim, ref, scenario, observable, action, and fixture is a
-// real builder call that registers into a module-level registry. The plugin imports each
-// sidecar between `beginCollection` and `endCollection` and reads what was registered, so a
-// renamed export breaks compilation rather than passing silently.
+// The authoring vocabulary: every claim, ref, and scenario is a real builder call that
+// registers into a module-level registry. The plugin imports each claim module between
+// `beginCollection` and `endCollection` and reads what was registered, so a renamed export
+// breaks compilation rather than passing silently. A scenario belongs to its claim and has no
+// identity of its own, so it is declared inside the claim that runs it
+// (`veridoc/docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -48,21 +50,26 @@ export interface Citation {
 }
 
 export interface Channel {
-  scenario?: string;
   asserts?: Asserts;
   artefact?: Artefact;
   citation?: Citation;
 }
 
-export interface ObservableDecl {
+/** The declared type of one value a scenario returns. It is what makes `contains` over a
+ * number a refusal instead of a false verdict. */
+export type ValueType = "string" | "number" | "boolean" | "array" | "object";
+
+export interface ScenarioValue {
   name: string;
-  type: string;
+  type: ValueType;
 }
 
-export interface ActionDecl {
-  name: string;
-  calls: RefToken;
-  produces: string[];
+/** One claim's scenario as it goes on the wire: the two step labels and the names and types
+ * of the values the scenario returns. It carries no id — the claim's own name addresses it. */
+export interface ScenarioDecl {
+  given: string;
+  when: string;
+  values: ScenarioValue[];
 }
 
 export interface DocumentDecl {
@@ -90,40 +97,34 @@ export interface RegisteredClaim {
   predicate: string;
   text: string;
   channel: Channel;
+  /** The scenario beside the claim, or absent when the claim is judged by prose and source
+   * alone. */
+  scenario?: RegisteredScenario;
   file: string;
   line: number;
 }
 
-/** The live runner behind an action: it receives the fixture world and the transpiled
- * target module, and returns a record keyed by observable name. */
-export type ActionRun = (
-  world: unknown,
-  target: Record<string, unknown>,
-) => Record<string, unknown> | Promise<Record<string, unknown>>;
+/** The scenario's body: it returns the values by the names the claim declared beside it. The
+ * answer is the values and nothing else — a file a run writes is a project asset, and the claim
+ * that needs one names it in its own `artefact` channel. */
+export type ScenarioRun = () =>
+  | Record<string, unknown>
+  | Promise<Record<string, unknown>>;
 
-export interface ActionEntry extends ActionDecl {
-  run: ActionRun;
-}
-
-export interface FixtureEntry {
-  name: string;
-  setup: () => unknown | Promise<unknown>;
+/** One claim's scenario as the module registered it: the wire declaration plus the live
+ * function that produces the declared values. */
+export interface RegisteredScenario extends ScenarioDecl {
+  run: ScenarioRun;
 }
 
 export interface Registered {
   claims: RegisteredClaim[];
-  observables: ObservableDecl[];
-  actions: ActionEntry[];
-  fixtures: FixtureEntry[];
   documents: DocumentDecl[];
   concepts: string[];
 }
 
 const registry: Registered = {
   claims: [],
-  observables: [],
-  actions: [],
-  fixtures: [],
   documents: [],
   concepts: [],
 };
@@ -133,16 +134,13 @@ const registry: Registered = {
 export const predicates = new Map<string, (value: unknown) => boolean>();
 
 let currentSidecar: string | undefined;
-let snapshot = { claims: 0, observables: 0, actions: 0, fixtures: 0, documents: 0, concepts: 0 };
+let snapshot = { claims: 0, documents: 0, concepts: 0 };
 
 /** The plugin calls this before importing each sidecar. */
 export function beginCollection(sidecarPath: string): void {
   currentSidecar = sidecarPath;
   snapshot = {
     claims: registry.claims.length,
-    observables: registry.observables.length,
-    actions: registry.actions.length,
-    fixtures: registry.fixtures.length,
     documents: registry.documents.length,
     concepts: registry.concepts.length,
   };
@@ -152,9 +150,6 @@ export function beginCollection(sidecarPath: string): void {
 export function endCollection(): Registered {
   const out: Registered = {
     claims: registry.claims.slice(snapshot.claims),
-    observables: registry.observables.slice(snapshot.observables),
-    actions: registry.actions.slice(snapshot.actions),
-    fixtures: registry.fixtures.slice(snapshot.fixtures),
     documents: registry.documents.slice(snapshot.documents),
     concepts: registry.concepts.slice(snapshot.concepts),
   };
@@ -339,35 +334,6 @@ export function concept(name: string): RefToken {
   return { kind: "concept", name };
 }
 
-export function scenario(id: string): string {
-  return id;
-}
-
-export function observable(name: string, type: string): ObservableDecl {
-  const decl: ObservableDecl = { name, type };
-  registry.observables.push(decl);
-  return decl;
-}
-
-export function action(
-  name: string,
-  a: { calls: Function; produces: string[]; run: ActionRun },
-): ActionDecl {
-  const entry: ActionEntry = {
-    name,
-    calls: ref(a.calls),
-    produces: a.produces,
-    run: a.run,
-  };
-  registry.actions.push(entry);
-  return { name: entry.name, calls: entry.calls, produces: entry.produces };
-}
-
-export function fixture(name: string, setup: () => unknown | Promise<unknown>): { name: string } {
-  registry.fixtures.push({ name, setup });
-  return { name };
-}
-
 export function equals(value: unknown): Check {
   return { equals: value };
 }
@@ -402,12 +368,21 @@ export function not(node: Asserts): Asserts {
   return { not: node };
 }
 
+/** The scenario a claim owns: the world and the call as two plain labels, the names and
+ * types of the values the scenario returns, and the code that produces them. */
+export interface ClaimScenario {
+  given: string;
+  when: string;
+  values: Record<string, ValueType>;
+  run: ScenarioRun;
+}
+
 export interface ClaimArgs {
   subject: RefToken;
   concept: string;
   predicate: string;
   text: string;
-  scenario?: string;
+  scenario?: ClaimScenario;
   asserts?: Asserts;
   artefact?: Artefact;
   citation?: Citation;
@@ -416,10 +391,21 @@ export interface ClaimArgs {
 function register(kind: Kind, args: ClaimArgs): void {
   const where = callerLocation();
   const channel: Channel = {};
-  if (args.scenario !== undefined) channel.scenario = args.scenario;
   if (args.asserts !== undefined) channel.asserts = args.asserts;
   if (args.artefact !== undefined) channel.artefact = args.artefact;
   if (args.citation !== undefined) channel.citation = args.citation;
+  const scenario: RegisteredScenario | undefined =
+    args.scenario === undefined
+      ? undefined
+      : {
+          given: args.scenario.given,
+          when: args.scenario.when,
+          values: Object.entries(args.scenario.values).map(([name, type]) => ({
+            name,
+            type,
+          })),
+          run: args.scenario.run,
+        };
   registry.claims.push({
     kind,
     subject: args.subject,
@@ -427,6 +413,7 @@ function register(kind: Kind, args: ClaimArgs): void {
     predicate: args.predicate,
     text: args.text,
     channel,
+    scenario,
     file: where.file,
     line: where.line,
   });

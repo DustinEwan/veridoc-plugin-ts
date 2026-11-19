@@ -28,6 +28,8 @@ export const BIVALENCE_METHODS = ["structural", "static-analysis", "witnesses"] 
 
 export const RUN_FAILURE_KINDS = ["build", "fixture", "deadline", "plugin"] as const;
 
+export const VALUE_KINDS = ["string", "number", "boolean", "array", "object"] as const;
+
 export const METHODS = [
   "handshake",
   "init",
@@ -67,23 +69,20 @@ export const FIELDS = {
       "concepts",
       "documents",
       "claims",
-      "observables",
-      "actions",
-      "fixtures",
+      "scenarios",
       "skipped",
     ],
     required: [
       "concepts",
       "documents",
       "claims",
-      "observables",
-      "actions",
-      "fixtures",
+      "scenarios",
       "skipped",
     ],
   },
   "raw-claim": {
     properties: [
+      "id",
       "kind",
       "subject",
       "concept",
@@ -94,6 +93,7 @@ export const FIELDS = {
       "line",
     ],
     required: [
+      "id",
       "kind",
       "subject",
       "concept",
@@ -104,21 +104,21 @@ export const FIELDS = {
       "line",
     ],
   },
+  "value-decl": {
+    properties: ["name", "type"],
+    required: ["name", "type"],
+  },
   channel: {
-    properties: ["scenario", "asserts", "artefact", "citation"],
+    properties: ["asserts", "artefact", "citation"],
     required: [],
   },
   "document-decl": {
     properties: ["path", "audience", "question", "notApplicable"],
     required: ["path", "audience", "question"],
   },
-  "observable-decl": {
-    properties: ["name", "type"],
-    required: ["name", "type"],
-  },
-  "action-decl": {
-    properties: ["name", "calls", "produces"],
-    required: ["name", "calls", "produces"],
+  "scenario-decl": {
+    properties: ["given", "when", "values"],
+    required: ["given", "when", "values"],
   },
   artefact: {
     properties: ["path", "sha256"],
@@ -137,8 +137,8 @@ export const FIELDS = {
     required: ["obs", "is"],
   },
   "run-request": {
-    properties: ["scenarioId", "fixture", "action", "args", "deadlineMs", "leaves"],
-    required: ["scenarioId", "fixture", "action", "args", "deadlineMs", "leaves"],
+    properties: ["claim", "timeoutMs"],
+    required: ["claim", "timeoutMs"],
   },
   "run-response": {
     properties: ["ok", "observed", "satisfied", "failure"],
@@ -181,8 +181,8 @@ export const REF_TOKEN_KINDS = ["symbol", "concept"] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 export type Kind = (typeof KINDS)[number];
 export type BivalenceMethod = (typeof BIVALENCE_METHODS)[number];
-export type RunFailureKind = (typeof RUN_FAILURE_KINDS)[number];
 
+export type RunFailureKind = (typeof RUN_FAILURE_KINDS)[number];
 export type RefToken =
   | { kind: "symbol"; name: string; from: string }
   | { kind: "concept"; name: string };
@@ -235,7 +235,6 @@ export interface Citation {
 }
 
 export interface Channel {
-  scenario?: string | null;
   asserts?: Asserts | null;
   artefact?: Artefact | null;
   citation?: Citation | null;
@@ -248,15 +247,21 @@ export interface DocumentDecl {
   notApplicable?: string | null;
 }
 
-export interface ObservableDecl {
+/** The declared type of one value a scenario returns. It is what makes `contains` over a
+ * number a refusal instead of a false verdict. */
+export type ValueType = (typeof VALUE_KINDS)[number];
+
+export interface ScenarioValue {
   name: string;
-  type: string;
+  type: ValueType;
 }
 
-export interface ActionDecl {
-  name: string;
-  calls: RefToken;
-  produces: string[];
+/** One claim's scenario: its two step labels and the values its code produces. It has no id
+ * of its own — the claim's id is the only address it is ever given. */
+export interface ScenarioDecl {
+  given: string;
+  when: string;
+  values: ScenarioValue[];
 }
 
 export interface Skipped {
@@ -265,6 +270,9 @@ export interface Skipped {
 }
 
 export interface RawClaim {
+  /** `<subject>#<predicate-slug>`, the claim module's own rule; the engine uses it verbatim,
+   * and it is the only thing `run` is asked for. */
+  id: string;
   kind: Kind;
   subject: RefToken;
   concept: string;
@@ -279,9 +287,9 @@ export interface CollectResult {
   concepts: string[];
   documents: DocumentDecl[];
   claims: RawClaim[];
-  observables: ObservableDecl[];
-  actions: ActionDecl[];
-  fixtures: string[];
+  /** The scenario beside each claim that declares one, keyed by that claim's id. A claim
+   * with no entry is judged by prose and source only. */
+  scenarios: Record<string, ScenarioDecl>;
   skipped: Skipped[];
 }
 
@@ -313,20 +321,24 @@ export interface BivalenceResult {
   reason?: string;
 }
 
+/** One claim's scenario to run: the claim's id is the only address, and the wait is the
+ * host's own. */
 export interface RunRequest {
-  scenarioId: string;
-  fixture: string;
-  action: string;
-  args: string[];
-  deadlineMs: number;
-  leaves: { leafId: string }[];
+  claim: string;
+  timeoutMs: number;
 }
 
+/** One value the run produced: the name the claim's scenario declares for it, and the value
+ * JSON-encoded, so the engine's `{"equals":2}` meets the number 2 and not the string "2". */
 export interface Observed {
   observable: string;
   value: string;
 }
 
+/** The plugin's answer for one leaf of the claim's own assertion tree, addressed
+ * `{claim id}#l{n}` over its pre-order walk — a mark the plugin derives, never one the engine
+ * sends. A `satisfies` leaf is decided by the author's predicate; the rest are decided from the
+ * values above and the engine reaches the same verdict from them. */
 export interface LeafAnswer {
   leafId: string;
   ok: boolean;
@@ -337,6 +349,10 @@ export interface RunFailure {
   detail: string;
 }
 
+/** The scenario's run, answered: every declared value observed, every leaf of the claim's own
+ * assertion tree decided, and nothing else. A scenario that cannot run answers this shape with
+ * `ok: false` and a failure naming the claim — never a JSON-RPC error — so the host records
+ * that one claim's result and keeps judging the rest. */
 export interface RunResponse {
   ok: boolean;
   observed: Observed[];

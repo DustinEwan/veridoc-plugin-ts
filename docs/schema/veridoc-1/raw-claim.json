@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "RawClaim",
-  "description": "One declared claim, exactly as the sidecar registered it.",
+  "description": "One declared claim, exactly as the sidecar registered it. The `id` is the plugin's: the\n`<referent>#<predicate>` name the claim's own runtime derived, which the engine uses verbatim\nrather than re-slugging the predicate and drifting from it. It is the address of the claim's\nscenario in `CollectResult::scenarios` and the only thing `run` is asked for.",
   "type": "object",
   "properties": {
     "channel": {
@@ -11,6 +11,9 @@
       "type": "string"
     },
     "file": {
+      "type": "string"
+    },
+    "id": {
       "type": "string"
     },
     "kind": {
@@ -33,6 +36,7 @@
   },
   "additionalProperties": false,
   "required": [
+    "id",
     "kind",
     "subject",
     "concept",
@@ -125,7 +129,7 @@
       ]
     },
     "Channel": {
-      "description": "The single channel field of a claim. Flat, not externally tagged, so the wire shape\nmatches the builder call and the \"two channels or none\" error is a direct count of the\npopulated fields.",
+      "description": "The single channel field of a claim. Flat, not externally tagged, so the wire shape\nmatches the builder call and the \"two channels or none\" error is a direct count of the\npopulated fields. `asserts` is the scenario channel: the scenario belongs to the claim and\narrives beside it in `CollectResult::scenarios`, so the channel carries the check and nothing\nelse (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).",
       "type": "object",
       "properties": {
         "artefact": {
@@ -156,12 +160,6 @@
             {
               "type": "null"
             }
-          ]
-        },
-        "scenario": {
-          "type": [
-            "string",
-            "null"
           ]
         }
       },

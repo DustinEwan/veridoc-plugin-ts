@@ -1,12 +1,12 @@
 # scanner: the veridoc example project
 
-A small TypeScript project whose documentation is proved by the build: one scenario,
-an artefact claim on a byte-pinned fixture, and a citation claim on a session log.
+A small TypeScript project whose documentation is proved by the build: a claim that carries its
+own scenario, an artefact claim on a byte-pinned sample file, and a citation claim on a session log.
 
 ## Setup
 
 The example lives in the plugin repository, so its `.veridoc/config.json` names
-`plugin.command` as this workspace's own built server, and the sidecars import
+`plugin.command` as this workspace's own built server, and the claim module and the index import
 `@veridoc/claims` and `@veridoc/tree` from the workspace root's `node_modules`:
 
 ```sh

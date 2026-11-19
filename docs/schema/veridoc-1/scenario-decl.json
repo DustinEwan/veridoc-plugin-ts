@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ScenarioDecl",
+  "description": "One claim's scenario: its two step labels, and the names and types of the values its world\nand call produce. It has no identity of its own — it is addressed by the claim's id — and the\ndeclaration is what lets the engine refuse `contains` over a number instead of evaluating it\nto false (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).",
+  "type": "object",
+  "properties": {
+    "given": {
+      "description": "The world, as an author wrote it: a report prints `Given an empty directory`.",
+      "type": "string"
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ValueDecl"
+      }
+    },
+    "when": {
+      "description": "The call, as an author wrote it. The plugin resolves it to code; the engine never parses it.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "given",
+    "when",
+    "values"
+  ],
+  "$defs": {
+    "ValueDecl": {
+      "description": "One value a scenario produces: the name an assertion reads, and the type that makes a check\nover it decidable.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/ValueKind"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type"
+      ]
+    },
+    "ValueKind": {
+      "description": "The declared type of a scenario value, spelled the five lowercase names the profile publishes.",
+      "type": "string",
+      "enum": [
+        "string",
+        "number",
+        "boolean",
+        "array",
+        "object"
+      ]
+    }
+  }
+}

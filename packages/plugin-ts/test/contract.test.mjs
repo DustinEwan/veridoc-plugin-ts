@@ -45,8 +45,8 @@ test("the bivalence methods match the committed enum", () => {
   assert.deepEqual([...protocol.BIVALENCE_METHODS], schema("bivalence-method").enum);
 });
 
-test("the run failure kinds match the committed enum", () => {
-  assert.deepEqual([...protocol.RUN_FAILURE_KINDS], schema("run-failure-kind").enum);
+test("the value kinds a scenario declares match the committed enum", () => {
+  assert.deepEqual([...protocol.VALUE_KINDS], schema("value-kind").enum);
 });
 
 test("the JSON-RPC error codes are the protocol's", () => {

@@ -37,6 +37,7 @@
   ],
   "$defs": {
     "LeafAnswer": {
+      "description": "One `satisfies` leaf the plugin evaluated. The engine sends no leaf ids: `{claimId}#l{n}`, in\nthe pre-order walk of the claim's own assertion tree, is computable from the claim's id and\nthe tree the plugin declared, so the answer arrives keyed the way the engine reads it.",
       "type": "object",
       "properties": {
         "leafId": {
@@ -53,9 +54,11 @@
       ]
     },
     "Observed": {
+      "description": "One value the run produced: the name the claim's scenario declares for it, and the value.",
       "type": "object",
       "properties": {
         "observable": {
+          "description": "One of the `values` names that claim's scenario declares.",
           "type": "string"
         },
         "value": {
@@ -86,7 +89,7 @@
       ]
     },
     "RunFailureKind": {
-      "description": "Why a scenario could not run. Never a claim state.",
+      "description": "Why a scenario could not run. Never a claim stronger than `run-failed`, and never the whole\nbuild's result (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).\n`Fixture` is the scenario's own world or the assets it reads, not a declared fixture: with no\nfixture registry there is no name to check before the run, so a missing world is discovered here.",
       "type": "string",
       "enum": [
         "build",

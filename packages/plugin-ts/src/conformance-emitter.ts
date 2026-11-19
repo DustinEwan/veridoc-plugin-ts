@@ -1,7 +1,7 @@
 // The conformance emitter contract: `<emitter> --out <dir>` renders an entire veridoc
-// project — source, claim sidecars, the observation vocabulary, the document index, one
-// working scenario, a citation store, and the five bivalence probes — plus the
-// `veridoc-conformance.json` that names them, and prints the directory it rendered.
+// project — the three files an author adds (`index.doc.ts`, `src/<module>.doc.ts`,
+// `docs/<name>.spec.md`) plus the source the claims are about, a citation store, and the
+// `veridoc-conformance.json` that names them — and prints the directory it rendered.
 //
 // The rendered project is the only project validation ever drives this plugin: the Rust
 // suite in the veridoc repository collects, resolves, gates, runs, cites, and surfaces
@@ -21,10 +21,9 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 
 const MANIFEST = {
   scenarioClaim: "rejects-missing-project-root",
-  scenarioId: "probe/refuses-missing-root",
-  fixture: "empty-directory",
-  action: "run-probe",
-  observables: ["exit.code", "stderr.text"],
+  // The names the scenario claim's own scenario declares; the conformance test asserts
+  // this equals what `collect` answers for that claim.
+  values: ["exit.code", "stderr.text"],
   citationStore: "session",
   citationId: "conformance",
   citationTurn: 1,
@@ -81,19 +80,56 @@ export function probe(dir: string): { root: string } {
 }
 `;
 
-const PROBE_DOC_TS = `// The fixture's claims: one scenario claim and the five bivalence probes. The probes
-// carry the spec's four negatives and one positive as \`satisfies\` leaves; the plugin's
-// static analysis must settle every one of them.
+const PROBE_DOC_TS = `// The fixture's claims: one scenario claim and the five bivalence probes, each carrying
+// the scenario beside it. The probes carry the spec's four negatives and one positive as
+// \`satisfies\` leaves; the plugin's static analysis must settle every one of them.
 
-import { all, claim, contains, equals, ref, satisfies, scenario } from "@veridoc/claims";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { all, claim, contains, equals, ref, satisfies } from "@veridoc/claims";
+import type { ClaimScenario, ScenarioRun, ValueType } from "@veridoc/claims";
 import * as probe from "./probe.ts";
+
+/** The values the world answers: the refusal's exit code and the diagnostic it writes. */
+const VALUES = {
+  "exit.code": "number",
+  "stderr.text": "string",
+} satisfies Record<string, ValueType>;
+
+/** Build this file's one world around a claim's own scenario. Two claims that need the same
+ * world call the same function in this file: reuse needs no mechanism (\`0006\`). */
+function scenario(run: ScenarioRun): ClaimScenario {
+  return {
+    given: "a directory that holds no config.json",
+    when: "probe against that directory",
+    values: VALUES,
+    run,
+  };
+}
+
+const refuse: ScenarioRun = async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "veridoc-conformance-"));
+  try {
+    probe.probe(dir);
+    return { "exit.code": 0, "stderr.text": "" };
+  } catch (error) {
+    // A throw inside the subject is a value the assertion decides, never a run failure.
+    const exitCode =
+      typeof error === "object" && error !== null && "exitCode" in error
+        ? Number(error.exitCode)
+        : 1;
+    const text = error instanceof Error ? error.message : String(error);
+    return { "exit.code": exitCode, "stderr.text": text };
+  }
+};
 
 claim.ensures({
   subject: ref(probe.probe),
   concept: "probe-scan",
   predicate: "rejects-missing-project-root",
   text: "probe refuses a directory that holds no config.json: the run exits with code 2 and the diagnostic names the missing file.",
-  scenario: scenario("probe/refuses-missing-root"),
+  scenario: scenario(refuse),
   asserts: all(
     { obs: "exit.code", is: equals(2) },
     { obs: "stderr.text", is: contains("config.json") },
@@ -105,7 +141,7 @@ claim.ensures({
   concept: "probe-scan",
   predicate: "always-true",
   text: "The always-true probe predicate holds of every exit code, so it divides no pair of outcomes.",
-  scenario: scenario("probe/refuses-missing-root"),
+  scenario: scenario(refuse),
   asserts: { obs: "exit.code", is: satisfies((x: unknown) => true) },
 });
 
@@ -114,7 +150,7 @@ claim.ensures({
   concept: "probe-scan",
   predicate: "or-true",
   text: "The disjunction probe predicate ends in true, so it holds of every exit code as well.",
-  scenario: scenario("probe/refuses-missing-root"),
+  scenario: scenario(refuse),
   asserts: {
     obs: "exit.code",
     is: satisfies((x: unknown) => typeof x === "string" || true),
@@ -126,7 +162,7 @@ claim.ensures({
   concept: "probe-scan",
   predicate: "self-equal",
   text: "The self-equality probe predicate compares a value to itself, so no value can fail it.",
-  scenario: scenario("probe/refuses-missing-root"),
+  scenario: scenario(refuse),
   asserts: { obs: "exit.code", is: satisfies((x: unknown) => x === x) },
 });
 
@@ -135,7 +171,7 @@ claim.ensures({
   concept: "probe-scan",
   predicate: "length-nonneg",
   text: "The non-negative-length probe predicate holds of every string, because a length is never negative.",
-  scenario: scenario("probe/refuses-missing-root"),
+  scenario: scenario(refuse),
   asserts: { obs: "stderr.text", is: satisfies((s: string) => s.length >= 0) },
 });
 
@@ -144,52 +180,8 @@ claim.ensures({
   concept: "probe-scan",
   predicate: "length-positive",
   text: "The positive-length probe predicate separates the empty diagnostic from every other one.",
-  scenario: scenario("probe/refuses-missing-root"),
+  scenario: scenario(refuse),
   asserts: { obs: "stderr.text", is: satisfies((s: string) => s.length > 0) },
-});
-`;
-
-const PROBE_OBS_TS = `// The fixture's vocabulary: two observables, the empty-directory world, and the action
-// that calls the fixture's own \`probe\`. A throw inside the target is an observed value.
-
-import { mkdtemp } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { action, fixture, observable } from "@veridoc/claims";
-import * as probe from "./probe.ts";
-
-observable("exit.code", "number");
-observable("stderr.text", "string");
-
-fixture("empty-directory", async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), "veridoc-conformance-"));
-  return { dir };
-});
-
-action("run-probe", {
-  calls: probe.probe,
-  produces: ["exit.code", "stderr.text"],
-  run: async (world, target) => {
-    const dir =
-      typeof world === "object" && world !== null && "dir" in world
-        ? String(world.dir)
-        : "";
-    const callable = target.probe;
-    if (typeof callable !== "function") {
-      throw new Error("the transpiled target does not export probe");
-    }
-    try {
-      callable(dir);
-      return { "exit.code": 0, "stderr.text": "" };
-    } catch (error) {
-      const exitCode =
-        typeof error === "object" && error !== null && "exitCode" in error
-          ? Number(error.exitCode)
-          : 1;
-      const text = error instanceof Error ? error.message : String(error);
-      return { "exit.code": exitCode, "stderr.text": text };
-    }
-  },
 });
 `;
 
@@ -207,14 +199,6 @@ tree({
     }),
   ],
 });
-`;
-
-const FEATURE = `Feature: probe
-
-  @id:probe/refuses-missing-root
-  Scenario: A missing project root is refused
-    Given the empty-directory fixture
-    When run-probe runs against that directory
 `;
 
 const SPEC_MD = `# Conformance fixture architecture
@@ -249,9 +233,7 @@ export function render(dir: string): string {
   write(root, ".veridoc/citations/conformance.jsonl", CITATION);
   write(root, "src/probe.ts", PROBE_TS);
   write(root, "src/probe.doc.ts", PROBE_DOC_TS);
-  write(root, "src/probe.obs.ts", PROBE_OBS_TS);
   write(root, "index.doc.ts", INDEX_DOC_TS);
-  write(root, "features/probe.feature", FEATURE);
   write(root, "docs/architecture.spec.md", SPEC_MD);
   write(root, "veridoc-conformance.json", `${JSON.stringify(MANIFEST, null, 2)}\n`);
   // The authoring packages resolve through symlinks into this checkout, so the fixture

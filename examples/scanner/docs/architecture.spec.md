@@ -13,7 +13,7 @@ guessed at <doc-claim name="rejects-missing-config"/>.
 ## The evidence behind the claims
 
 Every claim in this document rests on evidence the build re-checks on each run.
-The sample fixture is hashed against its recorded sha256 <doc-claim name="sample-fixture-pinned"/>,
+The sample directory listing is hashed against its recorded sha256 <doc-claim name="sample-listing-pinned"/>,
 and the exit-code choice is cited from the session log <doc-claim name="exit-code-2-decision"/>.
 
 <doc-section name="working">

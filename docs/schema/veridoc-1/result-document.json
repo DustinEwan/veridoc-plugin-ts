@@ -69,7 +69,7 @@
           "type": "string"
         },
         "evidence": {
-          "description": "Scenario id, artefact path, or verdict key.",
+          "description": "The `When` label of the scenario that ran, the artefact path, the citation, the verdict\nkey, or — for a `run-failed` claim — the reason the scenario did not run.",
           "type": "string"
         },
         "id": {
@@ -196,11 +196,20 @@
       ]
     },
     "Outcome": {
-      "description": "Exactly two members. `Contradicted` is kept even though a contradicted claim ends the run\nbefore the document exists, so a formatter's `match` on the outcome is exhaustive and\ncannot default a non-`supported` claim to plain prose.",
-      "type": "string",
-      "enum": [
-        "supported",
-        "contradicted"
+      "description": "Three members, and the third is the whole of what a scenario that never ran may say about the\nclaim. `Contradicted` is kept even though a contradicted claim ends the run before the document\nexists, so a formatter's `match` on the outcome is exhaustive and cannot default a\nnon-`supported` claim to plain prose.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "supported",
+            "contradicted"
+          ]
+        },
+        {
+          "description": "The scenario did not run. The claim is neither supported nor contradicted: no run that did\nnot happen is evidence either way.",
+          "type": "string",
+          "const": "run-failed"
+        }
       ]
     },
     "SectionResult": {

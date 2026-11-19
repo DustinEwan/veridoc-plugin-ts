@@ -1,7 +1,7 @@
 // The plugin's per-project state: what `collect` imported, the resolved referents, and the
-// live runners the registry holds. Everything after `collect` reads this.
+// live scenario functions the claim modules registered. Everything after `collect` reads this.
 
-import type { ActionEntry, FixtureEntry, ObservableDecl } from "@veridoc/claims";
+import type { RegisteredScenario } from "@veridoc/claims";
 import type { DocumentDecl, RawClaim } from "./protocol.js";
 
 export interface CitationStoreConfig {
@@ -24,9 +24,8 @@ export interface ProjectState {
   config: VeridocConfig;
   /** Claims with project-relative posix `file` and normalized `subject.from`. */
   claims: RawClaim[];
-  observables: ObservableDecl[];
-  actions: ActionEntry[];
-  fixtures: FixtureEntry[];
+  /** The scenario beside each claim that declares one, keyed by that claim's id. */
+  scenarios: Map<string, RegisteredScenario>;
   documents: DocumentDecl[];
   concepts: string[];
   /** Resolve key (`"{from}|{name}"` or `"concept|{name}"`) to the resolved referent. */
@@ -44,4 +43,12 @@ export function getState(): ProjectState {
     throw new Error("collect has not run; the plugin knows no project yet");
   }
   return current;
+}
+
+/** The claim the engine addresses by id. `collect` named every claim it read once, from the
+ * author's own subject and predicate, and the engine uses that name verbatim — so a claim whose
+ * referent never resolved is still the claim it was named, and every method that works from a
+ * claim looks it up here rather than through the resolved referents. */
+export function claimById(claimId: string): RawClaim | undefined {
+  return getState().claims.find((claim) => claim.id === claimId);
 }

@@ -1,15 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "CollectResult",
-  "description": "What `collect` reports: the index, the raw claims, and the observable/action vocabulary.",
+  "description": "What `collect` reports: the index, the raw claims, and each claim's own scenario. There is no\nproject-wide vocabulary any more: the values a scenario produces are declared by that\nscenario, keyed by the claim's id, and a claim with no entry is judged by prose and source\nonly (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).",
   "type": "object",
   "properties": {
-    "actions": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/ActionDecl"
-      }
-    },
     "claims": {
       "type": "array",
       "items": {
@@ -28,16 +22,10 @@
         "$ref": "#/$defs/DocumentDecl"
       }
     },
-    "fixtures": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "observables": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/ObservableDecl"
+    "scenarios": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/ScenarioDecl"
       }
     },
     "skipped": {
@@ -52,36 +40,10 @@
     "concepts",
     "documents",
     "claims",
-    "observables",
-    "actions",
-    "fixtures",
+    "scenarios",
     "skipped"
   ],
   "$defs": {
-    "ActionDecl": {
-      "description": "A declared action: the symbol it calls and the observables it produces.",
-      "type": "object",
-      "properties": {
-        "calls": {
-          "$ref": "#/$defs/RefToken"
-        },
-        "name": {
-          "type": "string"
-        },
-        "produces": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "name",
-        "calls",
-        "produces"
-      ]
-    },
     "Artefact": {
       "description": "A declared artefact: the file and the hash the claim records for it.",
       "type": "object",
@@ -164,7 +126,7 @@
       ]
     },
     "Channel": {
-      "description": "The single channel field of a claim. Flat, not externally tagged, so the wire shape\nmatches the builder call and the \"two channels or none\" error is a direct count of the\npopulated fields.",
+      "description": "The single channel field of a claim. Flat, not externally tagged, so the wire shape\nmatches the builder call and the \"two channels or none\" error is a direct count of the\npopulated fields. `asserts` is the scenario channel: the scenario belongs to the claim and\narrives beside it in `CollectResult::scenarios`, so the channel carries the check and nothing\nelse (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).",
       "type": "object",
       "properties": {
         "artefact": {
@@ -195,12 +157,6 @@
             {
               "type": "null"
             }
-          ]
-        },
-        "scenario": {
-          "type": [
-            "string",
-            "null"
           ]
         }
       },
@@ -306,25 +262,8 @@
         "because"
       ]
     },
-    "ObservableDecl": {
-      "description": "A declared observable with its declared type name.",
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "type": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "name",
-        "type"
-      ]
-    },
     "RawClaim": {
-      "description": "One declared claim, exactly as the sidecar registered it.",
+      "description": "One declared claim, exactly as the sidecar registered it. The `id` is the plugin's: the\n`<referent>#<predicate>` name the claim's own runtime derived, which the engine uses verbatim\nrather than re-slugging the predicate and drifting from it. It is the address of the claim's\nscenario in `CollectResult::scenarios` and the only thing `run` is asked for.",
       "type": "object",
       "properties": {
         "channel": {
@@ -334,6 +273,9 @@
           "type": "string"
         },
         "file": {
+          "type": "string"
+        },
+        "id": {
           "type": "string"
         },
         "kind": {
@@ -356,6 +298,7 @@
       },
       "additionalProperties": false,
       "required": [
+        "id",
         "kind",
         "subject",
         "concept",
@@ -422,6 +365,32 @@
         "source"
       ]
     },
+    "ScenarioDecl": {
+      "description": "One claim's scenario: its two step labels, and the names and types of the values its world\nand call produce. It has no identity of its own — it is addressed by the claim's id — and the\ndeclaration is what lets the engine refuse `contains` over a number instead of evaluating it\nto false (`docs/decisions/0006-a-project-adds-three-files-and-the-scenario-belongs-to-the-claim.md`).",
+      "type": "object",
+      "properties": {
+        "given": {
+          "description": "The world, as an author wrote it: a report prints `Given an empty directory`.",
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ValueDecl"
+          }
+        },
+        "when": {
+          "description": "The call, as an author wrote it. The plugin resolves it to code; the engine never parses it.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "given",
+        "when",
+        "values"
+      ]
+    },
     "Skipped": {
       "description": "A sidecar that would not import. The engine reports it as a run failure, because a\nsidecar that vanished silently would take its claims with it.",
       "type": "object",
@@ -437,6 +406,34 @@
       "required": [
         "file",
         "reason"
+      ]
+    },
+    "ValueDecl": {
+      "description": "One value a scenario produces: the name an assertion reads, and the type that makes a check\nover it decidable.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/ValueKind"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type"
+      ]
+    },
+    "ValueKind": {
+      "description": "The declared type of a scenario value, spelled the five lowercase names the profile publishes.",
+      "type": "string",
+      "enum": [
+        "string",
+        "number",
+        "boolean",
+        "array",
+        "object"
       ]
     }
   }
